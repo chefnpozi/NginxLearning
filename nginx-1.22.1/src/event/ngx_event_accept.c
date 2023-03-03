@@ -54,6 +54,8 @@ ngx_event_accept(ngx_event_t *ev)
 
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, ev->log, 0,
                    "accept on %V, ready: %d", &ls->addr_text, ev->available);
+    ngx_log_error(NGX_LOG_NOTICE, ev->log, 0,
+                   "accept on %V, ready: %d", &ls->addr_text, ev->available);
 
     do {
         socklen = sizeof(ngx_sockaddr_t);
@@ -310,6 +312,7 @@ ngx_event_accept(ngx_event_t *ev)
         log->data = NULL;
         log->handler = NULL;
 
+        /* 调用该监听端口对应的回调函数，对于 rtmp 模块，则固定为 ngx_rtmp_init_connection */
         ls->handler(c);
 
         if (ngx_event_flags & NGX_USE_KQUEUE_EVENT) {
