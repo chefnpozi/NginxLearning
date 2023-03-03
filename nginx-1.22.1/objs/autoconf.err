@@ -185,7 +185,7 @@ cc -Werror -W -O0 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -o objs/autotest objs/aut
 ----------------------------------------
 checking for crypt()
 
-/usr/bin/ld: /tmp/cckwYAjk.o: in function `main':
+/usr/bin/ld: /tmp/ccOjSYfW.o: in function `main':
 autotest.c:(.text+0x1d): undefined reference to `crypt'
 collect2: error: ld returned 1 exit status
 ----------
