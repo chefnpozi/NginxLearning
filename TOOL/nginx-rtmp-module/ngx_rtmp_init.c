@@ -17,6 +17,7 @@ static u_char * ngx_rtmp_log_error(ngx_log_t *log, u_char *buf, size_t len);
 void
 ngx_rtmp_init_connection(ngx_connection_t *c)
 {
+    // 在 ngx_rtmp_init_connection 函数中先经过一系列的初始化后，开始接收与客户端进行 rtmp 的 handshake 过程。
     ngx_uint_t             i;
     ngx_rtmp_port_t       *port;
     struct sockaddr       *sa;
