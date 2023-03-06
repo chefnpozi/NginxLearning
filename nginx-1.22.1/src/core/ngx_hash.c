@@ -12,6 +12,12 @@
 void *
 ngx_hash_find(ngx_hash_t *hash, ngx_uint_t key, u_char *name, size_t len)
 {
+    /*  hash: 是散列表的指针
+        key: 根据散列方法算出的散列关键字
+        name: 实际关键字的首地址
+        len：实际关键字的长度
+        如果在该散列表中查询到 关键字为 name 的槽，则返回改槽的value，否则返回NULL
+    */ 
     ngx_uint_t       i;
     ngx_hash_elt_t  *elt;
 
@@ -251,6 +257,13 @@ ngx_hash_find_combined(ngx_hash_combined_t *hash, ngx_uint_t key, u_char *name,
 ngx_int_t
 ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts)
 {
+    /*
+        hinit:散列表初始化结构体
+        names：数组首地址，该数组中的元素是ngx_hash_key_t，表示存储着预添加到散列表中的元素
+        nelts：names数组中的元素个数
+        返回NGX_OK表示初始化成功，初始化成功的散列表在 hinit->hash 
+        返回NGX_ERR表示初始化失败
+    */
     u_char          *elts;
     size_t           len;
     u_short         *test;
@@ -669,8 +682,8 @@ ngx_hash_strlow(u_char *dst, u_char *src, size_t n)
     key = 0;
 
     while (n--) {
-        *dst = ngx_tolower(*src);
-        key = ngx_hash(key, *dst);
+        *dst = ngx_tolower(*src);   // 将该字符小写化
+        key = ngx_hash(key, *dst);  // key * 31 + 该字符的assic码值
         dst++;
         src++;
     }

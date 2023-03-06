@@ -188,7 +188,7 @@ ngx_rtmp_cmd_connect_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
             (uint32_t)v.acodecs, (uint32_t)v.vcodecs,
             (ngx_int_t)v.object_encoding);
 
-    return ngx_rtmp_connect(s, &v);
+    return ngx_rtmp_connect(s, &v);   // ngx_rtmp_notify_connect
 }
 
 
@@ -205,6 +205,7 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
     static double               capabilities = NGX_RTMP_CAPABILITIES;
     static double               object_encoding = 0;
 
+    /* 以下内容为服务器将要对客户端的 connect 命令返回的 amf 类型的响应 */
     static ngx_rtmp_amf_elt_t  out_obj[] = {
 
         { NGX_RTMP_AMF_STRING,
@@ -294,6 +295,7 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
     s->acodecs = (uint32_t) v->acodecs;
     s->vcodecs = (uint32_t) v->vcodecs;
 
+    // 找到客户端 connect 的应用配置
     /* find application & set app_conf */
     cacfp = cscf->applications.elts;
     for(n = 0; n < cscf->applications.nelts; ++n, ++cacfp) {
@@ -301,6 +303,9 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
             ngx_strncmp((*cacfp)->name.data, s->app.data, s->app.len) == 0)
         {
             /* found app! */
+            
+            ngx_log_error(NGX_LOG_NOTICE, s->connection->log, 0,
+                "found app is '%V'", &s->app);
             s->app_conf = (*cacfp)->app_conf;
             break;
         }
@@ -314,13 +319,24 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
 
     object_encoding = v->object_encoding;
 
+            /* 发送应答窗口大小：ack_size 给客户端，该消息是用来通知对方应答窗口的大小，
+            * 发送方在发送了等于窗口大小的数据之后，等的爱接收对方的应答消息（在接收  
+            * 到应答消息之前停止发送数据）。接收当必须发送应答消息，在会话开始时，在  
+            * 会话开始时，会从上一次发送应答之后接收到了等于窗口大小的数据 */
     return ngx_rtmp_send_ack_size(s, cscf->ack_window) != NGX_OK ||
+            /* 发送 设置流带宽消息。发送此消息来说明对方的出口带宽限制，接收方以此来限制  
+            * 自己的出口带宽，即限制未被应答的消息数据大小。接收到此消息的一方，如果  
+            * 窗口大小与上一次发送的不一致，应该回复应答窗口大小的消息 */
            ngx_rtmp_send_bandwidth(s, cscf->ack_window,
                                    NGX_RTMP_LIMIT_DYNAMIC) != NGX_OK ||
+            /* 发送 设置块消息消息，用来通知对方新的最大的块大小。 */
            ngx_rtmp_send_chunk_size(s, cscf->chunk_size) != NGX_OK ||
            ngx_rtmp_send_amf(s, &h, out_elts,
                              sizeof(out_elts) / sizeof(out_elts[0]))
            != NGX_OK ? NGX_ERROR : NGX_OK;
+           // 服务端相应客户端connect命令消息后，客户端会发送releaseStream命令消息给服务器，nginx-rtmp-module对该命令不进行处理
+           // 接着等待接收下一条命令消息
+           // 接着服务端收到来自客户端的createStream命令消息，会调用 ngx_rtmp_cmd_create_stream_init
 }
 
 
@@ -337,6 +353,7 @@ ngx_rtmp_cmd_create_stream_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
           &v.trans, sizeof(v.trans) },
     };
 
+    // 解析该 createStream 命令消息，获取 v.trans 值
     if (ngx_rtmp_receive_amf(s, in, in_elts,
                 sizeof(in_elts) / sizeof(in_elts[0])))
     {
@@ -345,6 +362,7 @@ ngx_rtmp_cmd_create_stream_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 
     ngx_log_error(NGX_LOG_INFO, s->connection->log, 0, "createStream");
 
+    // 接着，从该函数中开始调用 ngx_rtmp_create_stream 构建的函数链表。这里调用到的是 ngx_rtmp_cmd_create_stream 函数
     return ngx_rtmp_create_stream(s, &v);
 }
 
@@ -352,6 +370,7 @@ ngx_rtmp_cmd_create_stream_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 static ngx_int_t
 ngx_rtmp_cmd_create_stream(ngx_rtmp_session_t *s, ngx_rtmp_create_stream_t *v)
 {
+    // 该函数主要是 发送对于 createStream 的响应
     /* support one message stream per connection */
     static double               stream;
     static double               trans;
@@ -387,6 +406,11 @@ ngx_rtmp_cmd_create_stream(ngx_rtmp_session_t *s, ngx_rtmp_create_stream_t *v)
     return ngx_rtmp_send_amf(s, &h, out_elts,
                              sizeof(out_elts) / sizeof(out_elts[0])) == NGX_OK ?
            NGX_DONE : NGX_ERROR;
+           /* 接着，客户端收到对于createStream的响应后，会发送 publish 给服务器，
+           publish 用于发布一条带有名字的流到服务器，其他的客户端可以使用此流名来播放该流，
+           接收其发布的音频 视频 以及其他的数据信息 从抓包截图中可知，publish type 为 'live'，即服务器不会保存客户端发布的流到文件中
+           对于publish命令消息，会调用 ngx_rtmp_cmd_publish_init 
+           */
 }
 
 
@@ -469,7 +493,8 @@ ngx_rtmp_cmd_delete_stream(ngx_rtmp_session_t *s, ngx_rtmp_delete_stream_t *v)
 static ngx_int_t
 ngx_rtmp_cmd_publish_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
         ngx_chain_t *in)
-{
+{   
+    // 接收到 publish 信令后开始执行
     static ngx_rtmp_publish_t       v;
 
     static ngx_rtmp_amf_elt_t      in_elts[] = {
@@ -786,7 +811,7 @@ ngx_rtmp_cmd_set_buflen(ngx_rtmp_session_t *s, ngx_rtmp_set_buflen_t *v)
 }
 
 
-static ngx_rtmp_amf_handler_t ngx_rtmp_cmd_map[] = {
+static ngx_rtmp_amf_handler_t ngx_rtmp_cmd_map[] = { // 挂载ph
     { ngx_string("connect"),            ngx_rtmp_cmd_connect_init           },
     { ngx_string("createStream"),       ngx_rtmp_cmd_create_stream_init     },
     { ngx_string("closeStream"),        ngx_rtmp_cmd_close_stream_init      },
@@ -825,7 +850,7 @@ ngx_rtmp_cmd_postconfiguration(ngx_conf_t *cf)
 
     ncalls = sizeof(ngx_rtmp_cmd_map) / sizeof(ngx_rtmp_cmd_map[0]);
 
-    ch = ngx_array_push_n(&cmcf->amf, ncalls);
+    ch = ngx_array_push_n(&cmcf->amf, ncalls);  // 准备挂载 ngx_rtmp_cmd_map 中的各个 init 函数
     if (ch == NULL) {
         return NGX_ERROR;
     }

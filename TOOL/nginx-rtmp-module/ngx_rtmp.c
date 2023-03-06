@@ -483,7 +483,7 @@ ngx_rtmp_init_event_handlers(ngx_conf_t *cf, ngx_rtmp_core_main_conf_t *cmcf)
     calls_hash.name = "amf_hash";
     calls_hash.pool = cf->pool;
     calls_hash.temp_pool = NULL;
-
+    // 有个疑问，cmcf->amf_arrays.elts 存放的到底是什么 放的是 ngx_rtmp_handler_pt 的数组
     if (ngx_hash_init(&calls_hash, cmcf->amf_arrays.elts, cmcf->amf_arrays.nelts)
             != NGX_OK)
     {

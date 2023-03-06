@@ -86,7 +86,8 @@ ngx_rtmp_cycle(ngx_rtmp_session_t *s)
     ngx_connection_t           *c;
 
     c = s->connection;
-    c->read->handler =  ngx_rtmp_recv;
+    // 重新设置当前 rtmp 连接的读、写事件的回调函数。
+    c->read->handler =  ngx_rtmp_recv; // 当监听到客户端发送的数据时，将调用 ngx_rtmp_recv 函数进行处理
     c->write->handler = ngx_rtmp_send;
 
     s->ping_evt.data = c;
@@ -94,6 +95,10 @@ ngx_rtmp_cycle(ngx_rtmp_session_t *s)
     s->ping_evt.handler = ngx_rtmp_ping;
     ngx_rtmp_reset_ping(s);
 
+    /*  在 ngx_rtmp_recv 函数中，会循环接收客户端发来的 rtmp 包数据，接收到完整的一个 rtmp message 后，会根据该消息
+        的 rtmp message type，调用相应的函数进行处理，如，若为 20，即为 amf0 类型的命令消息，就会调用
+        ngx_rtmp_amf_message_handler 函数进行处理。 
+    */
     ngx_rtmp_recv(c->read);
 }
 
@@ -463,7 +468,7 @@ ngx_rtmp_recv(ngx_event_t *rev)
             st->len = 0;
             h->timestamp += st->dtime;
 
-            if (ngx_rtmp_receive_message(s, h, head) != NGX_OK) {
+            if (ngx_rtmp_receive_message(s, h, head) != NGX_OK) { // 通过msg的类型判断调用哪一个handler
                 ngx_rtmp_finalize_session(s);
                 return;
             }
@@ -785,7 +790,7 @@ ngx_rtmp_receive_message(ngx_rtmp_session_t *s,
         return NGX_OK;
     }
 
-    evhs = &cmcf->events[h->type];
+    evhs = &cmcf->events[h->type]; // 根据消息的类型取出相对应的 handler 
     evh = evhs->elts;
 
     ngx_log_debug1(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
@@ -798,7 +803,7 @@ ngx_rtmp_receive_message(ngx_rtmp_session_t *s,
         ngx_log_debug1(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
                 "calling handler %d", n);
 
-        switch ((*evh)(s, h, in)) {
+        switch ((*evh)(s, h, in)) { // 比如该消息类型为 20，即为 AMF0 Command，因此会调用 ngx_rtmp_amf_message_handler 对该消息进行解析
             case NGX_ERROR:
                 ngx_log_debug1(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
                         "handler %d failed", n);

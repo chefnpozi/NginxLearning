@@ -426,15 +426,18 @@ ngx_rtmp_amf_message_handler(ngx_rtmp_session_t *s,
     len = ngx_strlen(func);
 
     ch = ngx_hash_find(&cmcf->amf_hash,
-            ngx_hash_strlow(func, func, len), func, len);
+            ngx_hash_strlow(func, func, len), func, len); // 为什么要将func小写化呢
 
     if (ch && ch->nelts) {
-        ph = ch->elts;
-        for (n = 0; n < ch->nelts; ++n, ++ph) {
+        ph = ch->elts; // 拿出该数组中的每一个 handler 进行遍历
+        for (n = 0; n < ch->nelts; ++n, ++ph) { // 
             ngx_log_debug3(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
                 "AMF func '%s' passed to handler %d/%d",
                 func, n, ch->nelts);
-            switch ((*ph)(s, h, in)) {
+            ngx_log_error(NGX_LOG_NOTICE, s->connection->log, 0,
+                "AMF func '%s' passed to handler %d/%d",
+                func, n, ch->nelts);
+            switch ((*ph)(s, h, in)) { // 比如 ngx_rtmp_cmd_connect_init
                 case NGX_ERROR:
                     return NGX_ERROR;
                 case NGX_DONE:

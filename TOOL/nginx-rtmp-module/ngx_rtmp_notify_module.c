@@ -1316,7 +1316,7 @@ ngx_rtmp_notify_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
     return ngx_rtmp_netcall_create(s, &ci);
 
 next:
-    return next_connect(s, v);
+    return next_connect(s, v);  // ngx_rtmp_cmd_connect
 }
 
 

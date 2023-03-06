@@ -75,12 +75,12 @@ ngx_rtmp_client_version[4] = {
 #define NGX_RTMP_HANDSHAKE_BUFSIZE                  1537
 
 
-#define NGX_RTMP_HANDSHAKE_SERVER_RECV_CHALLENGE    1
-#define NGX_RTMP_HANDSHAKE_SERVER_SEND_CHALLENGE    2
-#define NGX_RTMP_HANDSHAKE_SERVER_SEND_RESPONSE     3
-#define NGX_RTMP_HANDSHAKE_SERVER_RECV_RESPONSE     4
-#define NGX_RTMP_HANDSHAKE_SERVER_DONE              5
-
+#define NGX_RTMP_HANDSHAKE_SERVER_RECV_CHALLENGE    1 // 1阶段，服务端接收客户端发送的 C0 C1
+#define NGX_RTMP_HANDSHAKE_SERVER_SEND_CHALLENGE    2 // 2阶段，服务端发送给客户端 S0 S1
+#define NGX_RTMP_HANDSHAKE_SERVER_SEND_RESPONSE     3 // 服务端发送 S2
+#define NGX_RTMP_HANDSHAKE_SERVER_RECV_RESPONSE     4 // 服务端接收客户端发送的 C2
+#define NGX_RTMP_HANDSHAKE_SERVER_DONE              5 // 接收到 C2 后，至此，服务器和客户端的 rtmp handshake 过程完整，开始正常的信息交互阶段
+// ngx_rtmp_handshake_done 接收到 C2 后，服务器即进入循环处理客户端的请求阶段：ngx_rtmp_cycle
 
 #define NGX_RTMP_HANDSHAKE_CLIENT_SEND_CHALLENGE    6
 #define NGX_RTMP_HANDSHAKE_CLIENT_RECV_CHALLENGE    7
@@ -367,7 +367,7 @@ ngx_rtmp_handshake_done(ngx_rtmp_session_t *s)
         ngx_rtmp_finalize_session(s);
         return;
     }
-
+    // 接收 C2 握手结束，服务器即进入循环处理客户端的请求阶段：ngx_rtmp_cycle
     ngx_rtmp_cycle(s);
 }
 
@@ -588,7 +588,8 @@ ngx_rtmp_handshake(ngx_rtmp_session_t *s)
     ngx_log_debug0(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
             "handshake: start server handshake");
 
-    s->hs_buf = ngx_rtmp_alloc_handshake_buffer(s);
+    s->hs_buf = ngx_rtmp_alloc_handshake_buffer(s); // 分配内存给记录握手阶段的buf
+    // 第一阶段，服务端等待接收客户端发送的 C0 和 C1 阶段。
     s->hs_stage = NGX_RTMP_HANDSHAKE_SERVER_RECV_CHALLENGE;
 
     ngx_rtmp_handshake_recv(c->read);

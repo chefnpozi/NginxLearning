@@ -18,6 +18,7 @@ void
 ngx_rtmp_init_connection(ngx_connection_t *c)
 {
     // 在 ngx_rtmp_init_connection 函数中先经过一系列的初始化后，开始接收与客户端进行 rtmp 的 handshake 过程。
+    
     ngx_uint_t             i;
     ngx_rtmp_port_t       *port;
     struct sockaddr       *sa;
@@ -138,6 +139,7 @@ ngx_rtmp_init_connection(ngx_connection_t *c)
         ngx_rtmp_proxy_protocol(s);
 
     } else {
+        // 握手
         ngx_rtmp_handshake(s);
     }
 }
