@@ -357,25 +357,33 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
                    "relay: create remote context");
 
     pool = NULL;
+    /* 分配一个内存池 */
     pool = ngx_create_pool(4096, racf->log);
     if (pool == NULL) {
         return NULL;
     }
 
+    /* 从内存池中为 ngx_rtmp_relay_ctx_t 结构体分配内存 */
     rctx = ngx_pcalloc(pool, sizeof(ngx_rtmp_relay_ctx_t));
     if (rctx == NULL) {
         goto clear;
     }
 
+    /* 将发布的流名拷贝到新建的 ngx_rtmp_relay_ctx_t 中的 name 成员 */
     if (name && ngx_rtmp_relay_copy_str(pool, &rctx->name, name) != NGX_OK) {
         goto clear;
     }
 
+    /* 将配置文件中配置的 push 推流地址，即 url 拷贝到新建的 ngx_rtmp_relay_ctx_t
+     * 结构体的 url 成员中 */
     if (ngx_rtmp_relay_copy_str(pool, &rctx->url, &target->url.url) != NGX_OK) {
         goto clear;
     }
 
+    // 有个疑问，这里不是rctx指向target么
+    /* target->tag 指向 ngx_rtmp_relay_module 结构体的首地址 */
     rctx->tag = target->tag;
+    /* target->data 指向当前 data 所属的 ngx_rtmp_relay_ctx_t 结构体的首地址 */
     rctx->data = target->data;
 
 #define NGX_RTMP_RELAY_STR_COPY(to, from)                                     \
@@ -383,6 +391,7 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
         goto clear;                                                           \
     }
 
+    /* 将以下 target 中的值拷贝到新建的 ngx_rtmp_relay_ctx_t 结构体的相应成员中 */
     NGX_RTMP_RELAY_STR_COPY(app,        app);
     NGX_RTMP_RELAY_STR_COPY(tc_url,     tc_url);
     NGX_RTMP_RELAY_STR_COPY(page_url,   page_url);
@@ -396,8 +405,11 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
 
 #undef NGX_RTMP_RELAY_STR_COPY
 
+    /* 若 app 的值未知 */
     if (rctx->app.len == 0 || rctx->play_path.len == 0) {
         /* parse uri */
+        /* 这里是从推流地址中提取出 app 的值，下面分析以 "push rtmp:192.168.1.82:1935/live;"  
+         * 为例，则提出的 live 将赋给 rctx->app */
         uri = &target->url.uri;
         first = uri->data;
         last  = uri->data + uri->len;
@@ -414,8 +426,10 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
             }
 
             if (rctx->app.len == 0 && first != p) {
+                /* 这里 v.data 指向 "live" */
                 v.data = first;
                 v.len = p - first;
+                /* 将 "live" 赋给 rctx->app */
                 if (ngx_rtmp_relay_copy_str(pool, &rctx->app, &v) != NGX_OK) {
                     goto clear;
                 }
@@ -426,6 +440,9 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
                 ++p;
             }
 
+            /* 若播放路径为 NULL 且 p 不等于 last（注，这里 p 不等于 last 意味着 
+             * "push rtmp:192.168.1.82:1935/live;" 的 "live" 字符串后面还有数据，
+             * 但是，这里没有）*/
             if (rctx->play_path.len == 0 && p != last) {
                 v.data = p;
                 v.len = last - p;
@@ -438,6 +455,8 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
         }
     }
 
+    /* 从内存池中为主动连接结构体 ngx_peer_connection_t 分配内存 */
+    // 准备回源或是转推
     pc = ngx_pcalloc(pool, sizeof(ngx_peer_connection_t));
     if (pc == NULL) {
         goto clear;
@@ -450,30 +469,41 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
     }
 
     /* get address */
+    /* 获取 推流地址 url 中指明的服务器地址(即推流的目标地址)
+     * 如"push rtmp:192.168.1.82:1935/live;" 中的 "192.168.1.82:1935" */
     addr = &target->url.addrs[target->counter % target->url.naddrs];
     target->counter++;
 
     /* copy log to keep shared log unchanged */
     rctx->log = *racf->log;
     pc->log = &rctx->log;
+    /* 当使用长连接与上游服务器通信时，可通过该方法由连接池中获取一个新连接 */
     pc->get = ngx_rtmp_relay_get_peer;
+    /* 当使用长连接与上游服务器通信时，通过该方法将使用完毕的连接释放给连接池 */
     pc->free = ngx_rtmp_relay_free_peer;
+    /* 远端服务器的名称，这里其实就是 "192.168.1.82:1935" 该串字符串 */
     pc->name = &addr->name;
     pc->socklen = addr->socklen;
     pc->sockaddr = (struct sockaddr *)ngx_palloc(pool, pc->socklen);
     if (pc->sockaddr == NULL) {
         goto clear;
     }
+    /* 将 addr->sockaddr 中保存的远端服务器的地址信息拷贝到 pc->sockaddr 中 */
     ngx_memcpy(pc->sockaddr, addr->sockaddr, pc->socklen);
 
+    /* 开始连接上游服务器 */
     rc = ngx_event_connect_peer(pc);
+    /* 由 ngx_event_connect_peer 源码可知，因为 socket 套接字被设置为非阻塞，
+     * 因为首次 connect 必定失败，因此该函数返回 NGX_AGAIN */
     if (rc != NGX_OK && rc != NGX_AGAIN ) {
         ngx_log_debug0(NGX_LOG_DEBUG_RTMP, racf->log, 0,
                 "relay: connection failed");
         goto clear;
     }
+    // 此时的pc表示一个成功连接上游的主动连接，拿出其中的tcp连接
     c = pc->connection;
     c->pool = pool;
+    /* 推流 URL */
     c->addr_text = rctx->url;
 
     addr_conf = ngx_pcalloc(pool, sizeof(ngx_rtmp_addr_conf_t));
@@ -489,13 +519,14 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
     addr_ctx->srv_conf  = cctx->srv_conf;
     ngx_str_set(&addr_conf->addr_text, "ngx-relay");
 
+    /* 为该主动连接初始化一个会话 */
     rs = ngx_rtmp_init_session(c, addr_conf);
     if (rs == NULL) {
         /* no need to destroy pool */
         return NULL;
     }
     rs->app_conf = cctx->app_conf;
-    rs->relay = 1;
+    rs->relay = 1; /* 置该标志位为 1 */
     rctx->session = rs;
     ngx_rtmp_set_ctx(rs, rctx, ngx_rtmp_relay_module);
     ngx_str_set(&rs->flashver, "ngx-local-relay");
@@ -504,6 +535,7 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
     (void) ngx_atomic_fetch_add(ngx_stat_active, 1);
 #endif
 
+    /* 此时作为客户端，开始向上游服务器发说送 hanshake 包，即 C0 + C1 */
     ngx_rtmp_client_handshake(rs, 1);
     return rctx;
 
@@ -550,6 +582,7 @@ ngx_rtmp_relay_create_local_ctx(ngx_rtmp_session_t *s, ngx_str_t *name,
 
     ctx->push_evt.data = s;
     ctx->push_evt.log = s->connection->log;
+    /* 设置该 push_evt 事件的回调函数 */
     ctx->push_evt.handler = ngx_rtmp_relay_push_reconnect;
 
     if (ctx->publish) {
@@ -563,6 +596,8 @@ ngx_rtmp_relay_create_local_ctx(ngx_rtmp_session_t *s, ngx_str_t *name,
     }
 
     return ctx;
+    /* 从 ngx_rtmp_relay_create_local_ctx 函数返回后，就一直返回到 ngx_rtmp_relay_publish 函数中，接着执行 next_publish 的下
+       一个函数。这里为 ngx_rtmp_live_publish */
 }
 
 
@@ -582,6 +617,8 @@ ngx_rtmp_relay_create(ngx_rtmp_session_t *s, ngx_str_t *name,
         return NGX_ERROR;
     }
 
+    /* 该函数主要是创建一个新的连接，连接推流url中指定的地址，即将该地址作为上游服务器的地址，
+     * 向该上游服务器发起连接 */
     play_ctx = create_play_ctx(s, name, target);
     if (play_ctx == NULL) {
         return NGX_ERROR;
@@ -605,6 +642,7 @@ ngx_rtmp_relay_create(ngx_rtmp_session_t *s, ngx_str_t *name,
         return NGX_OK;
     }
 
+    /* 创建一个本地 ngx_rtmp_relay_ctx_t */
     publish_ctx = create_publish_ctx(s, name, target);
     if (publish_ctx == NULL) {
         ngx_rtmp_finalize_session(play_ctx->session);
@@ -645,6 +683,8 @@ ngx_rtmp_relay_push(ngx_rtmp_session_t *s, ngx_str_t *name,
     return ngx_rtmp_relay_create(s, name, target,
             ngx_rtmp_relay_create_local_ctx,
             ngx_rtmp_relay_create_remote_ctx);
+        /*从 ngx_rtmp_relay_create_local_ctx 函数返回后，就一直返回到 ngx_rtmp_relay_publish 函数中，接着执行 next_publish 的下
+        一个函数。这里为 ngx_rtmp_live_publish */
 }
 
 
@@ -671,18 +711,28 @@ ngx_rtmp_relay_publish(ngx_rtmp_session_t *s, ngx_rtmp_publish_t *v)
         goto next;
     }
 
+    /* v->name 中保存的是从客户端发送的 publish 命令消息中提取出的要发布的流名称 */
     name.len = ngx_strlen(v->name);
     name.data = v->name;
 
+    /* 从 pushes 数组中取出首元素，遍历该数组 */
     t = racf->pushes.elts;
     for (n = 0; n < racf->pushes.nelts; ++n, ++t) {
         target = *t;
 
+        /* 配置文件中是否指定了要推流的名称，若是，则检测指定的流名字与当前接收到的publish 流名
+         * 是否一致 */
         if (target->name.len && (name.len != target->name.len ||
             ngx_memcmp(name.data, target->name.data, name.len)))
         {
             continue;
         }
+
+        ngx_log_error(NGX_LOG_NOTICE, s->connection->log, 0,
+                "target->name is ='%V' app='%V' "
+                "playpath='%V' url='%V'",
+                &name, &target->app, &target->play_path,
+                &target->url.url);
 
         if (ngx_rtmp_relay_push(s, &name, target) == NGX_OK) {
             continue;
@@ -701,6 +751,8 @@ ngx_rtmp_relay_publish(ngx_rtmp_session_t *s, ngx_rtmp_publish_t *v)
 
 next:
     return next_publish(s, v);
+    // 从 nginx-rtmp 的源码和 nginx.conf 的配置可知，主要调用 ngx_rtmp_relay_publish 和 ngx_rtmp_live_publish 两个函数。
+    // ngx_rtmp_live_publish 
 }
 
 
@@ -922,6 +974,13 @@ ngx_rtmp_relay_send_connect(ngx_rtmp_session_t *s)
             sizeof(out_elts) / sizeof(out_elts[0])) != NGX_OK
         ? NGX_ERROR
         : NGX_OK;
+    /* 发送完这几个 RTMP 包，后，又回到 epoll_wait 中进行监听。
+
+        下面的分析区分一个服务器，两个客户端：
+
+        服务器：192.168.1.82:1935
+        客户端：obs 推流
+        客户端：192.168.1.82：xxxx */
 }
 
 
@@ -951,7 +1010,7 @@ ngx_rtmp_relay_send_create_stream(ngx_rtmp_session_t *s)
     ngx_memzero(&h, sizeof(h));
     h.csid = NGX_RTMP_RELAY_CSID_AMF_INI;
     h.type = NGX_RTMP_MSG_AMF_CMD;
-
+    // 该函数主要是构建 createStream 包，然后发送给服务器
     return ngx_rtmp_send_amf(s, &h, out_elts,
             sizeof(out_elts) / sizeof(out_elts[0]));
 }
@@ -1090,6 +1149,8 @@ static ngx_int_t
 ngx_rtmp_relay_on_result(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
         ngx_chain_t *in)
 {
+    // 该函数中首先解析接收到响应数据，然后根据 v.trans 调用相应的函数进行处理
+    // 客户端接收到服务器发送的对 connect 的响应：_result(NetConnection.Connect.Success)
     ngx_rtmp_relay_ctx_t       *ctx;
     static struct {
         double                  trans;
@@ -1147,10 +1208,13 @@ ngx_rtmp_relay_on_result(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 
     switch ((ngx_int_t)v.trans) {
         case NGX_RTMP_RELAY_CONNECT_TRANS:
+            // /* 向服务器发送 createStream 命令 */
+            /* 这里为调用 ngx_rtmp_relay_send_create_stream。*/
             return ngx_rtmp_relay_send_create_stream(s);
 
         case NGX_RTMP_RELAY_CREATE_STREAM_TRANS:
             if (ctx->publish != ctx && !s->static_relay) {
+                /* 向服务器发送 publish 命令 */
                 if (ngx_rtmp_relay_send_publish(s) != NGX_OK) {
                     return NGX_ERROR;
                 }
@@ -1315,6 +1379,8 @@ ngx_rtmp_relay_handshake_done(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
         return NGX_OK;
     }
 
+    // 客户端握手成功
+    /* 主要是向服务器发送 connect 连接命令 */
     return ngx_rtmp_relay_send_connect(s);
 }
 

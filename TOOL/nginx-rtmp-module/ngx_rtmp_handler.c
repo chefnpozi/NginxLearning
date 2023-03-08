@@ -820,6 +820,7 @@ ngx_rtmp_receive_message(ngx_rtmp_session_t *s,
 ngx_int_t
 ngx_rtmp_set_chunk_size(ngx_rtmp_session_t *s, ngx_uint_t size)
 {
+    // 服务器接收到客户端发送的设置块大小消息。此时服务器会调用到 ngx_rtmp_set_chunk_size 函数进行块大小的设置
     ngx_rtmp_core_srv_conf_t           *cscf;
     ngx_chain_t                        *li, *fli, *lo, *flo;
     ngx_buf_t                          *bi, *bo;

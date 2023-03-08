@@ -675,7 +675,7 @@ ngx_rtmp_codec_reconstruct_meta(ngx_rtmp_session_t *s)
     if (rc != NGX_OK || ctx->meta == NULL) {
         return NGX_ERROR;
     }
-
+    /* 构造完整的 rtmp 消息 */
     return ngx_rtmp_codec_prepare_meta(s, 0);
 }
 
@@ -718,6 +718,7 @@ ngx_rtmp_codec_prepare_meta(ngx_rtmp_session_t *s, uint32_t timestamp)
     h.msid = NGX_RTMP_MSID;
     h.type = NGX_RTMP_MSG_AMF_META;
     h.timestamp = timestamp;
+    /* 构造完整的 rtmp 消息 */
     ngx_rtmp_prepare_message(s, &h, NULL, ctx->meta);
 
     ctx->meta_version = ngx_rtmp_codec_get_next_version();
@@ -730,6 +731,9 @@ static ngx_int_t
 ngx_rtmp_codec_meta_data(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
         ngx_chain_t *in)
 {
+    /* 此时，监听到 obs 客户端发送的类型为 amf_meta(18) 的 rtmp 消息。
+    对于 "@setDataFrame"，仅有 ngx_rtmp_codec_module 模块对其设置了回调函数，
+    为 ngx_rtmp_codec_meta_data 函数*/
     ngx_rtmp_codec_app_conf_t      *cacf;
     ngx_rtmp_codec_ctx_t           *ctx;
     ngx_uint_t                      skip;
@@ -878,12 +882,12 @@ ngx_rtmp_codec_meta_data(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
             ctx->audio_codec_id);
 
     switch (cacf->meta) {
-        case NGX_RTMP_CODEC_META_ON:
+        case NGX_RTMP_CODEC_META_ON:    // 初始化为该值
             return ngx_rtmp_codec_reconstruct_meta(s);
         case NGX_RTMP_CODEC_META_COPY:
             return ngx_rtmp_codec_copy_meta(s, h, in);
     }
-
+    /*该函数主要是解析 setDataFrame 的数据，然后调用 ngx_rtmp_codec_reconstruct_meta 函数。*/
     /* NGX_RTMP_CODEC_META_OFF */
 
     return NGX_OK;

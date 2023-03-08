@@ -16,6 +16,7 @@ ngx_int_t
 ngx_rtmp_protocol_message_handler(ngx_rtmp_session_t *s,
         ngx_rtmp_header_t *h, ngx_chain_t *in)
 {
+    // 服务器接收到客户端发送的设置应答窗口大小的消息 设置流带宽的消息
     ngx_buf_t              *b;
     u_char                 *p;
     uint32_t                val;
@@ -56,6 +57,7 @@ ngx_rtmp_protocol_message_handler(ngx_rtmp_session_t *s,
             /* receive window size =val */
             ngx_log_debug1(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
                 "receive ack_size=%uD", val);
+            /* 直接设置应答窗口大小 */
             s->ack_size = val;
             break;
 

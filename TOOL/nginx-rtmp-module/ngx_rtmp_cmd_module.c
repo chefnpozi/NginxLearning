@@ -344,6 +344,7 @@ static ngx_int_t
 ngx_rtmp_cmd_create_stream_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
                                 ngx_chain_t *in)
 {
+    // 服务器接收到客户端发来的 createStream 命令消息
     static ngx_rtmp_create_stream_t     v;
 
     static ngx_rtmp_amf_elt_t  in_elts[] = {
@@ -402,7 +403,7 @@ ngx_rtmp_cmd_create_stream(ngx_rtmp_session_t *s, ngx_rtmp_create_stream_t *v)
 
     h.csid = NGX_RTMP_CSID_AMF_INI;
     h.type = NGX_RTMP_MSG_AMF_CMD;
-
+    // 发送对于 createStream 的响应
     return ngx_rtmp_send_amf(s, &h, out_elts,
                              sizeof(out_elts) / sizeof(out_elts[0])) == NGX_OK ?
            NGX_DONE : NGX_ERROR;
@@ -519,6 +520,7 @@ ngx_rtmp_cmd_publish_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 
     ngx_memzero(&v, sizeof(v));
 
+    /* 从 publish 命令消息中获取 in_elts 中指定的值 */
     if (ngx_rtmp_receive_amf(s, in, in_elts,
                              sizeof(in_elts) / sizeof(in_elts[0])))
     {
@@ -532,6 +534,10 @@ ngx_rtmp_cmd_publish_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
                   v.name, v.args, v.type, v.silent);
 
     return ngx_rtmp_publish(s, &v);
+    /* 接着，该函数开始调用 ngx_rtmp_publish 构建的函数链表。
+    从 nginx-rtmp 的源码和 nginx.conf 的配置可知，主要调用
+    ngx_rtmp_relay_publish 和 ngx_rtmp_live_publish 两个函数。
+    由 rtmp 模块的排序，首先调用 ngx_rtmp_relay_publish */
 }
 
 

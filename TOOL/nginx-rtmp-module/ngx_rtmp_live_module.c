@@ -1055,8 +1055,10 @@ ngx_rtmp_live_publish(ngx_rtmp_session_t *s, ngx_rtmp_publish_t *v)
 
     /* join stream as publisher */
 
+    /* 构建一个 ngx_rtmp_live_ctx_t 结构体作为发布者 */
     ngx_rtmp_live_join(s, v->name, 1);
 
+    /* 这里获取到的就是上面构建的 ngx_rtmp_live_ctx_t 结构体  */
     ctx = ngx_rtmp_get_module_ctx(s, ngx_rtmp_live_module);
     if (ctx == NULL || !ctx->publishing) {
         goto next;
@@ -1065,8 +1067,23 @@ ngx_rtmp_live_publish(ngx_rtmp_session_t *s, ngx_rtmp_publish_t *v)
     ctx->silent = v->silent;
 
     if (!ctx->silent) {
+        /* 对之前客户端发送的 publish 返回一个响应 */
         ngx_rtmp_send_status(s, "NetStream.Publish.Start",
                              "status", "Start publishing");
+        /*之后又回到 epoll_wait 处，等待监听的事件触发。*/
+        /*首先 fd = 9 为连接上游服务器(192.168.1.82:1935) 时创建的作为客户端的 STREAM 类型的 socket 套接字，
+        而 fd = 5 为 nginx 启动时创建的 STREAM 类型的 socket 监听套接字。
+        因此，从打印中可以看出，上面的打印是这么一个流程：
+
+        epoll 监听的 fd 为 9 的套接字可写，因此调用该套接字上写事件的回调函数，从之前的源码可知，为
+        ngx_rtmp_handshake_send 函数，该函数将已经准备好的 C0 和 C1 通过该写事件对应的 send 函数，即
+        ngx_unix_send 函数发送给上游服务器(192.168.1.82:1935)；发送完后进入 CLIENT_RECV_CHALLENGE(7) 阶段，
+        该阶段为等待接收服务器 S0 和 S1 的阶段；
+        epool 监控到服务器 fd:5 有数据可读，且为新连接，因此调用 ngx_event_accept 接收该客户端(192.168.1.82:39334)的
+        连接，接受连接后服务器使用 fd:10 与客户端进行交互，接着服务器开始进入 handshake 阶段；
+        下面就开始了服务器 (192.168.1.82:1935, fd = 10) 和 客户端(192.168.1.82:39334, fd = 9) 的 hanshake 过程，就不再详
+        述，和之前分析的 hanshake 一样。
+        客户端发送 C2 后，会进入 NGX_RTMP_HANDSHAKE_CLIENT_DONE(10) 阶段，接着会调用该函数 ngx_rtmp_handshake_done*/
     }
 
 next:

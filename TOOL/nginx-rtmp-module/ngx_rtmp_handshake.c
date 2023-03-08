@@ -367,7 +367,7 @@ ngx_rtmp_handshake_done(ngx_rtmp_session_t *s)
         ngx_rtmp_finalize_session(s);
         return;
     }
-    // 接收 C2 握手结束，服务器即进入循环处理客户端的请求阶段：ngx_rtmp_cycle
+    // 接收 C2 服务端握手结束，服务器即进入循环处理客户端的请求阶段：ngx_rtmp_cycle
     ngx_rtmp_cycle(s);
 }
 
@@ -517,6 +517,7 @@ ngx_rtmp_handshake_send(ngx_event_t *wev)
     b = s->hs_buf;
 
     while(b->pos != b->last) {
+        // 缓存区数据不为空
         n = c->send(c, b->pos, b->last - b->pos);
 
         if (n == NGX_ERROR) {
@@ -602,15 +603,19 @@ ngx_rtmp_client_handshake(ngx_rtmp_session_t *s, unsigned async)
     ngx_connection_t           *c;
 
     c = s->connection;
+    /* 设置当前连接读写事件的回调函数 */
     c->read->handler =  ngx_rtmp_handshake_recv;
     c->write->handler = ngx_rtmp_handshake_send;
 
     ngx_log_debug0(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
             "handshake: start client handshake");
 
+    /* 为该将要进行的 handshake 过程分配数据缓存，用于存储接收/响应的 hanshake 包 */
     s->hs_buf = ngx_rtmp_alloc_handshake_buffer(s);
+    /* 设置当前 handshake 阶段，即为 client send: C0 + C1 */
     s->hs_stage = NGX_RTMP_HANDSHAKE_CLIENT_SEND_CHALLENGE;
 
+    /* 构建 C0 + C1 的 数据包 */
     if (ngx_rtmp_handshake_create_challenge(s,
                 ngx_rtmp_client_version,
                 &ngx_rtmp_client_partial_key) != NGX_OK)
@@ -619,6 +624,8 @@ ngx_rtmp_client_handshake(ngx_rtmp_session_t *s, unsigned async)
         return;
     }
 
+    /* 有前面的调用传入的参数可知，该值为 1，即为异步，因此这里暂时不向上游服务器发送 handshake，
+     * 而是将其写事件添加到定时器和 epoll 中，等待下次循环监控到该写事件可写时才发送 C0 + C1 */
     if (async) {
         ngx_add_timer(c->write, s->timeout);
         if (ngx_handle_write_event(c->write, 0) != NGX_OK) {
