@@ -29,19 +29,24 @@ ngx_rtmp_bit_read(ngx_rtmp_bit_reader_t *br, ngx_uint_t n)
 
     while (n) {
 
+        /* 若已经读取到尾部，则置位错误标志位 */
         if (br->pos >= br->last) {
             br->err = 1;
             return 0;
         }
 
+        /* 控制一次读取的 bit 数不超过 8 bit */
         d = (br->offs + n > 8 ? (ngx_uint_t) (8 - br->offs) : n);
 
+        /* 将读取到的值追加到 v 中 */
         v <<= d;
         v += (*br->pos >> (8 - br->offs - d)) & ((u_char) 0xff >> (8 - d));
 
+        /* 更新 bit reader 的 偏移值 offs */
         br->offs += d;
         n -= d;
 
+        /* 若偏移值为8，则重置该偏移值 */
         if (br->offs == 8) {
             br->pos++;
             br->offs = 0;

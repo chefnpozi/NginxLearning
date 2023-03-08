@@ -533,11 +533,13 @@ ngx_rtmp_cmd_publish_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
                   "publish: name='%s' args='%s' type=%s silent=%d",
                   v.name, v.args, v.type, v.silent);
 
-    return ngx_rtmp_publish(s, &v);
     /* 接着，该函数开始调用 ngx_rtmp_publish 构建的函数链表。
     从 nginx-rtmp 的源码和 nginx.conf 的配置可知，主要调用
     ngx_rtmp_relay_publish 和 ngx_rtmp_live_publish 两个函数。
     由 rtmp 模块的排序，首先调用 ngx_rtmp_relay_publish */
+    return ngx_rtmp_publish(s, &v);
+    /* 当前客户端连接的 application 为 live，而该 application{} 下没有 push，
+    因此这里主要调用 ngx_rtmp_live_publish */
 }
 
 

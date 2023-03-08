@@ -194,6 +194,7 @@ static ngx_int_t
 ngx_rtmp_codec_av(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
         ngx_chain_t *in)
 {
+    // 服务器 接收 客户端(obs): video(9)
     ngx_rtmp_core_srv_conf_t           *cscf;
     ngx_rtmp_codec_ctx_t               *ctx;
     ngx_chain_t                       **header;
@@ -287,10 +288,13 @@ ngx_rtmp_codec_parse_aac_header(ngx_rtmp_session_t *s, ngx_chain_t *in)
 
     ctx = ngx_rtmp_get_module_ctx(s, ngx_rtmp_codec_module);
 
+    // 该函数初始化一个 bit reader
     ngx_rtmp_bit_init_reader(&br, in->buf->pos, in->buf->last);
 
+    /* 读取 16 bit 的值，这里读取到的值不做处理，相当于跳过 16 bit */
     ngx_rtmp_bit_read(&br, 16);
 
+    /* 读取 5 bit 的 aac_profile 值 */
     ctx->aac_profile = (ngx_uint_t) ngx_rtmp_bit_read(&br, 5);
     if (ctx->aac_profile == 31) {
         ctx->aac_profile = (ngx_uint_t) ngx_rtmp_bit_read(&br, 6) + 32;
@@ -530,6 +534,7 @@ ngx_rtmp_codec_parse_avc_header(ngx_rtmp_session_t *s, ngx_chain_t *in)
                    ctx->avc_profile, ctx->avc_compat, ctx->avc_level,
                    ctx->avc_nal_bytes, ctx->avc_ref_frames,
                    ctx->width, ctx->height);
+    // end 
 }
 
 

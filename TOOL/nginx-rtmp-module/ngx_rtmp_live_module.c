@@ -373,6 +373,7 @@ ngx_rtmp_live_start(ngx_rtmp_session_t *s)
 
     lacf = ngx_rtmp_get_module_app_conf(s, ngx_rtmp_live_module);
 
+    /* 构建好 stream_begin rtmp 包 */
     control = ngx_rtmp_create_stream_begin(s, NGX_RTMP_MSID);
 
     nstatus = 0;
@@ -696,6 +697,7 @@ static ngx_int_t
 ngx_rtmp_live_av(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
                  ngx_chain_t *in)
 {
+    // 该函数的主要是将接收到来自客户端 obs 发送来的 音视频 数据转发给该流的订购者，即 application live
     ngx_rtmp_live_ctx_t            *ctx, *pctx;
     ngx_rtmp_codec_ctx_t           *codec_ctx;
     ngx_chain_t                    *header, *coheader, *meta,
@@ -737,6 +739,7 @@ ngx_rtmp_live_av(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
         return NGX_OK;
     }
 
+    /* 若当前流处于未活跃状态 */
     if (!ctx->stream->active) {
         ngx_rtmp_live_start(s);
     }
@@ -1032,7 +1035,7 @@ ngx_rtmp_live_av(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
                               &ctx->stream->bw_in_audio :
                               &ctx->stream->bw_in_video,
                               h->mlen);
-
+    // 该函数的主要是将接收到来自客户端 obs 发送来的 音视频 数据转发给该流的订购者，即 application live
     return NGX_OK;
 }
 
@@ -1109,7 +1112,7 @@ ngx_rtmp_live_play(ngx_rtmp_session_t *s, ngx_rtmp_play_t *v)
                    (uint32_t) v->duration, (uint32_t) v->reset);
 
     /* join stream as subscriber */
-
+    // 构建 ngx_rtmp_live_ctx_t
     ngx_rtmp_live_join(s, v->name, 0);
 
     ctx = ngx_rtmp_get_module_ctx(s, ngx_rtmp_live_module);

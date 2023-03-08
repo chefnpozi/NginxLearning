@@ -821,6 +821,7 @@ ngx_rtmp_relay_play_local(ngx_rtmp_session_t *s)
             ngx_min(sizeof(v.name) - 1, ctx->name.len))) = 0;
 
     return ngx_rtmp_play(s, &v);
+    // 在该函数中又调用 ngx_rtmp_play 构建的函数链表，这里主要调用了 ngx_rtmp_live_play 函数
 }
 
 
@@ -1300,6 +1301,7 @@ static ngx_int_t
 ngx_rtmp_relay_on_status(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
         ngx_chain_t *in)
 {
+    // 客户端接收到服务器发送的对 publish 的响应。表示客户端可以向服务器发布流了
     ngx_rtmp_relay_ctx_t       *ctx;
     static struct {
         double                  trans;
@@ -1363,8 +1365,16 @@ ngx_rtmp_relay_on_status(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
     ngx_log_debug3(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
             "relay: onStatus: level='%s' code='%s' description='%s'",
             v.level, v.code, v.desc);
-
+    // 客户端发送服务器相应的音频包
     return NGX_OK;
+    /*对于 NGX_RTMP_MSG_AUDIO(8)，主要有以下几个 rtmp 模块设置了回调函数：
+        ngx_rtmp_dash_module
+        ngx_rtmp_hls_module
+        ngx_rtmp_live_module
+        ngx_rtmp_record_module
+        ngx_rtmp_codec_module
+            这里主要调用 codec 和 live 模块设置的回调函数，首先调用 ngx_rtmp_codec_module 模块设置的回调函数 ngx_rtmp_codec_av 
+            (codec 解码器 a 音频 v 视频) 和 ngx_rtmp_live_module 模块设置的回调函数 ngx_rtmp_live_av */
 }
 
 
