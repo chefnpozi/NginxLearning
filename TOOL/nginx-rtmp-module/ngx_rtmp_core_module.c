@@ -37,6 +37,7 @@ static ngx_conf_deprecated_t  ngx_conf_deprecated_so_keepalive = {
 
 static ngx_command_t  ngx_rtmp_core_commands[] = {
 
+    /* 对应 server{}，代表一个虚拟主机 */
     { ngx_string("server"),
       NGX_RTMP_MAIN_CONF|NGX_CONF_BLOCK|NGX_CONF_NOARGS,
       ngx_rtmp_core_server,
@@ -44,6 +45,7 @@ static ngx_command_t  ngx_rtmp_core_commands[] = {
       0,
       NULL },
 
+    /* 需要监听的IP地址或端口 */
     { ngx_string("listen"),
       NGX_RTMP_SRV_CONF|NGX_CONF_TAKE12,
       ngx_rtmp_core_listen,
@@ -51,6 +53,7 @@ static ngx_command_t  ngx_rtmp_core_commands[] = {
       0,
       NULL },
 
+    /* 具体的应用 */
     { ngx_string("application"),
       NGX_RTMP_SRV_CONF|NGX_CONF_BLOCK|NGX_CONF_TAKE1,
       ngx_rtmp_core_application,
@@ -100,6 +103,7 @@ static ngx_command_t  ngx_rtmp_core_commands[] = {
       offsetof(ngx_rtmp_core_srv_conf_t, ack_window),
       NULL },
 
+    /* RTMP 传输数据块的最大值 */
     { ngx_string("chunk_size"),
       NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_num_slot,
@@ -161,6 +165,7 @@ static ngx_command_t  ngx_rtmp_core_commands[] = {
 };
 
 
+// 这几个 create 方法主要是为存储配置项分配对应的内存空间，并初始化其值
 static ngx_rtmp_module_t  ngx_rtmp_core_module_ctx = {
     NULL,                                   /* preconfiguration */
     NULL,                                   /* postconfiguration */
@@ -172,7 +177,8 @@ static ngx_rtmp_module_t  ngx_rtmp_core_module_ctx = {
     ngx_rtmp_core_merge_app_conf            /* merge app configuration */
 };
 
-
+/* ngx_rtmp_core_module 模块是所有 RTMP 模块中的第一个 RTMP 模块，即它的 ctx_index 为 0。RTMP 中主要的
+   配置块是在该模块中进行解析的，如 server{}、application{} 等 */
 ngx_module_t  ngx_rtmp_core_module = {
     NGX_MODULE_V1,
     &ngx_rtmp_core_module_ctx,             /* module context */
@@ -338,16 +344,18 @@ ngx_rtmp_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ngx_rtmp_core_srv_conf_t   *cscf, **cscfp;
     ngx_rtmp_core_main_conf_t  *cmcf;
 
+    /* 建立属于这个 server 块的 ngx_rtmp_conf_ctx_t 结构体 */
     ctx = ngx_pcalloc(cf->pool, sizeof(ngx_rtmp_conf_ctx_t));
     if (ctx == NULL) {
         return NGX_CONF_ERROR;
     }
 
     rtmp_ctx = cf->ctx;
+    /* ctx->main_conf 指向所属的 rtmp 块下的 ngx_rtmp_conf_ctx_t 结构体的 main_conf 指针数组 */
     ctx->main_conf = rtmp_ctx->main_conf;
 
     /* the server{}'s srv_conf */
-
+    /* ctx->srv_conf 和 ctx->app_conf 要重新分配指针数组 */
     ctx->srv_conf = ngx_pcalloc(cf->pool, sizeof(void *) * ngx_rtmp_max_module);
     if (ctx->srv_conf == NULL) {
         return NGX_CONF_ERROR;
@@ -364,6 +372,7 @@ ngx_rtmp_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     modules = ngx_modules;
 #endif
 
+    /* 循环调用所有 RTMP 模块的 create_srv_conf 方法和 create_app_conf 方法 */
     for (m = 0; modules[m]; m++) {
         if (modules[m]->type != NGX_RTMP_MODULE) {
             continue;
@@ -392,6 +401,10 @@ ngx_rtmp_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     /* the server configuration context */
 
+    /* 第一个 RTMP 模块就是 ngx_rtmp_core_module 模块，它在 create_srv_conf 方法将生成
+     * ngx_rtmp_core_srv_conf_t 配置结构体，这个结构体对应着当前正在解析的 server 块，这
+     * 时，将 ngx_rtmp_core_srv_conf_t 添加到全局的 ngx_rtmp_core_main_conf_t 结构体
+     * 的 servers 动态数组中 */
     cscf = ctx->srv_conf[ngx_rtmp_core_module.ctx_index];
     cscf->ctx = ctx;
 
@@ -408,6 +421,7 @@ ngx_rtmp_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     /* parse inside server{} */
 
     pcf = *cf;
+    /* 将cf->ctx 临时指向 server 块下的 ngx_rtmp_conf_ctx_t */
     cf->ctx = ctx;
     cf->cmd_type = NGX_RTMP_SRV_CONF;
 
@@ -432,15 +446,21 @@ ngx_rtmp_core_application(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ngx_rtmp_core_srv_conf_t   *cscf;
     ngx_rtmp_core_app_conf_t   *cacf, **cacfp;
 
+    /* 建立所属 application 块下的 ngx_rtmp_conf_ctx_t 结构体 */
     ctx = ngx_pcalloc(cf->pool, sizeof(ngx_rtmp_conf_ctx_t));
     if (ctx == NULL) {
         return NGX_CONF_ERROR;
     }
 
     pctx = cf->ctx;
+    /* 将 ctx->main_conf 指向所属的 server 块下 ngx_rtmp_conf_ctx_t 
+     * 结构体的 main_conf 指针数组  */
     ctx->main_conf = pctx->main_conf;
+    /* 将 ctx->srv_conf 指向所属的 server 块下的 ngx_rtmp_conf_ctx_t 
+     * 结构体的 srv_conf 指针数组 */
     ctx->srv_conf = pctx->srv_conf;
 
+    /* 而 ctx->app_conf 则需要重新分配内存空间 */
     ctx->app_conf = ngx_pcalloc(cf->pool, sizeof(void *) * ngx_rtmp_max_module);
     if (ctx->app_conf == NULL) {
         return NGX_CONF_ERROR;
@@ -452,6 +472,7 @@ ngx_rtmp_core_application(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     modules = ngx_modules;
 #endif
 
+    /* 调用所有 RTMP 模块的 create_app_conf 方法 */
     for (i = 0; modules[i]; i++) {
         if (modules[i]->type != NGX_RTMP_MODULE) {
             continue;
@@ -467,11 +488,22 @@ ngx_rtmp_core_application(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
         }
     }
 
+    /* 第一个 RTMP 模块就是 ngx_rtmp_core_module 模块，它在 create_srv_conf 方法将生成
+     * ngx_rtmp_core_srv_conf_t 配置结构体，这个结构体对应着当前正在解析的 server 块，这
+     * 时，将 ngx_rtmp_core_srv_conf_t 添加到全局的 ngx_rtmp_core_main_conf_t 结构体
+     * 的 servers 动态数组中 */
+
+    /* 第一个 RTMP 模块就是 ngx_rtmp_core_module 模块，它在 create_app_conf 方法将生成
+     * ngx_rtmp_core_app_conf_t 配置结构体，这个结构体对应着当前正在解析的 application
+     * 块，这时，将 ngx_rtmp_core_app_conf_t 添加到该 application 所属的 server 块下的
+     * ngx_rtmp_conf_ctx_t 结构体的 srv_conf 指针数组的第1个位置（即 srv_conf[0]）
+     * 指向的 ngx_rtmp_core_srv_conf_t 结构体的 application 数组中 */
     cacf = ctx->app_conf[ngx_rtmp_core_module.ctx_index];
     cacf->app_conf = ctx->app_conf;
 
     value = cf->args->elts;
 
+    /* 将应用的名字赋给 cacf->name */
     cacf->name = value[1];
     cscf = pctx->srv_conf[ngx_rtmp_core_module.ctx_index];
 

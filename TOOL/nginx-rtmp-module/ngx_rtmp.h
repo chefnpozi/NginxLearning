@@ -25,8 +25,18 @@ typedef unsigned __int8     uint8_t;
 
 
 typedef struct {
+    /* 指向一个指针数组，数组中的每个成员都是由所有 RTMP 模块的 create_main_conf 方法创建的
+     * 存放全局配置项的结构体，它们存放着解析直属于 rtmp{} 块内的 main 级别的配置项参数 */
     void                  **main_conf;
+
+    /* 指向一个指针数组，数组中的每个成员都是由所有 RTMP 模块的 create_srv_conf 方法创建的与 
+     * server 相关的结构体，它们或存放 main 级别配置项，或存放 srv 级别配置项，这与当前的 
+     * ngx_rtmp_conf_ctx_t 是在解析 rtmp{} 或者 server{} 块时创建的有关 */
     void                  **srv_conf;
+
+    /* 指向一个指针数组，数组中的每个成员都是由所有 RTMP 模块的 create_app_conf 方法创建的
+     * application 相关的结构体，它们可能存放着 main、srv、app 级别的配置项，这与当前的
+     * ngx_rtmp_conf_ctx_t 是在解析 rtmp{}、server{} 或者 application{} 块时创建的有关 */
     void                  **app_conf;
 } ngx_rtmp_conf_ctx_t;
 
@@ -292,13 +302,23 @@ typedef struct {
 
 
 typedef struct {
+    /* 存储指针的动态数组，每个指针指向ngx_http_core_srv_conf_t结构体的地址，
+     * 也就是其成员类型为ngx_rtmp_core_srv_conf_t** */
     ngx_array_t             servers;    /* ngx_rtmp_core_srv_conf_t */
+    /* 每一个 listen 对应一个 ngx_rtmp_listen_t 结构体，
+     * 该数组保存着 rtmp{} 下的所有 listen 配置项 */
     ngx_array_t             listen;     /* ngx_rtmp_listen_t */
 
+    /* rtmp 的事件数组，每个模块针对某个事件实现各自的方法都
+     * 放入到该数组中 */
     ngx_array_t             events[NGX_RTMP_MAX_EVENT];
 
     ngx_hash_t              amf_hash;
     ngx_array_t             amf_arrays;
+    /* 保存各 RTMP 模块在各自实现的 postconfiguration 方法中添加的
+     * ngx_rtmp_amf_handler_t 结构体指针，该结构体为各 RTMP 模块当
+     * 检测到客户端发来的数据有自己想要处理的 amf 字段时调用的回调
+     * 方法 */
     ngx_array_t             amf;
 } ngx_rtmp_core_main_conf_t;
 
@@ -308,6 +328,8 @@ extern ngx_rtmp_core_main_conf_t   *ngx_rtmp_core_main_conf;
 
 
 typedef struct ngx_rtmp_core_srv_conf_s {
+    /* 将同一个 server 块内多个表达 application 块的 ngx_rtmp_core_app_conf_t 
+     * 结构体指针保存到该数组中 */
     ngx_array_t             applications; /* ngx_rtmp_core_app_conf_t */
 
     ngx_msec_t              timeout;
@@ -318,6 +340,7 @@ typedef struct ngx_rtmp_core_srv_conf_s {
 
     ngx_uint_t              ack_window;
 
+    /* rtmp 数据传输块大小 */
     ngx_int_t               chunk_size;
     ngx_pool_t             *pool;
     ngx_chain_t            *free;
@@ -330,13 +353,18 @@ typedef struct ngx_rtmp_core_srv_conf_s {
     size_t                  out_cork;
     ngx_msec_t              buflen;
 
+    /* 指向当前server块所属的 ngx_rtmp_conf_ctx_t 结构体 */
     ngx_rtmp_conf_ctx_t    *ctx;
 } ngx_rtmp_core_srv_conf_t;
 
 
 typedef struct {
     ngx_array_t             applications; /* ngx_rtmp_core_app_conf_t */
+    /* 该应用的名称，即 nginx.conf 中 application 后的表达式 */
     ngx_str_t               name;
+    /* 指向所属 application 块内 ngx_rtmp_conf_ctx_t 结构体中 app_conf 指针数组，
+     * 它保存着当前 application 块内所有 RTMP 模块 create_app_conf 方法产生的结
+     * 构体指针 */
     void                  **app_conf;
 } ngx_rtmp_core_app_conf_t;
 
@@ -346,22 +374,48 @@ typedef struct {
     ngx_rtmp_session_t     *session;
 } ngx_rtmp_error_log_ctx_t;
 
-
+/* ngx_rtmp_module 模块是 RTMP 的核心模块，定义了新的模块类型 NGX_RTMP_MODULE。
+   这样的 RTMP 模块对于 ctx 上下文 使用了不同于核心模块、事件模块的新接口 ngx_rtmp_module_t */
 typedef struct {
+    /* 在解析 rtmp{...} 内的配置项前回调 */
     ngx_int_t             (*preconfiguration)(ngx_conf_t *cf);
+    /* 解析完 rtmp{...} 内的所有配置项后回调 */
     ngx_int_t             (*postconfiguration)(ngx_conf_t *cf);
 
+    /* 创建用于存储 RTMP 全局配置项的结构体，该结构体中的成员将保存直属于 rtmp{} 块的配置项参数 */
     void                 *(*create_main_conf)(ngx_conf_t *cf);
+    /* 解析完 main 配置项后回调 */
     char                 *(*init_main_conf)(ngx_conf_t *cf, void *conf);
 
+    /* 创建用于存储可同时出现在 main、srv 级别配置项的结构体，该结构体中
+     * 的成员与 server 配置是相关联的 */
     void                 *(*create_srv_conf)(ngx_conf_t *cf);
+    /* create_srv_conf 产生的结构体所要解析的配置项，可能同时出现在 main、srv 级别中，merge_srv_conf 
+     * 方法可以把出现在 main 级别中的配置项合并到 srv 级别配置项中 */
     char                 *(*merge_srv_conf)(ngx_conf_t *cf, void *prev,
                                     void *conf);
 
+    /* 创建用于存储可同时出现在 main、srv、app 级别配置项的结构体，
+     * 该结构体中的成员与 application 配置是相关联的 */
     void                 *(*create_app_conf)(ngx_conf_t *cf);
+    /* create_app_conf 产生的结构体所要解析的配置项，可能同时出现在 main、srv、app 级别中，
+     * merge_app_conf 方法可以把分别出现在 main、srv 级别的配置项值合并到 app 级别的配置项中 */
     char                 *(*merge_app_conf)(ngx_conf_t *cf, void *prev,
                                     void *conf);
-} ngx_rtmp_module_t;
+} ngx_rtmp_module_t; /* 对于每一个 RTMP 模块，都必须实现 ngx_rtmp_module_t 接口 ngx_rtmp_module_t 完全是围绕着配置项来进行的，
+                        每一个 RTMP 模块都将根据 main、srv、app 这些不同级别的配置项来决定自己的行为 */
+        /* 在处理 rtmp{} 块内的 main 级别配置项时，对每一个 RTMP 模块来说，都会调用 create_main_conf、create_srv_cof、
+        create_app_conf 方法建立 3 个结构体，分别用于存储 RTMP 全局配置项、server 配置项、application 配置项。
+        问：
+        rtmp{} 内的配置项本来就是 main 级别的，有了 create_main_conf 生成的结构体已经足够保存全局配置项参数了，为什么
+        还需要调用 create_srv_conf、create_app_conf 方法建立结构体呢？这是为了把同时出现在 rtmp{}、server{}、
+        application{} 内的相同配置项进行合并而做的准备。
+
+        对于 server{} 块内的配置项的处理，需要调用每个 RTMP 模块的 create_srv_conf 方法、create_app_conf 方法建立两个
+        结构体，分别用于存储 server、application 相关的配置项，其中 create_app_conf 产生的结构体仅用于合并 application
+        相关的配置项。
+
+        对于 application 块内的配置项则只需要调用每个 RTMP 模块的 create_app_conf 方法建立 1 个结构体即可 */
 
 #define NGX_RTMP_MODULE                 0x504D5452     /* "RTMP" */
 
@@ -380,13 +434,15 @@ typedef struct {
 #define ngx_rtmp_set_ctx(s, c, module)         s->ctx[module.ctx_index] = c;
 #define ngx_rtmp_delete_ctx(s, module)         s->ctx[module.ctx_index] = NULL;
 
-
+// Nginx 提供了两类接口可以在 ngx_cycle_t 核心结构体中找到对应模块的 main server app 级别下的配置结构体：
+/* s 为 ngx_rtmp_session_t 类型的指针 */
 #define ngx_rtmp_get_module_main_conf(s, module)                             \
     (s)->main_conf[module.ctx_index]
 #define ngx_rtmp_get_module_srv_conf(s, module)  (s)->srv_conf[module.ctx_index]
 #define ngx_rtmp_get_module_app_conf(s, module)  ((s)->app_conf ? \
     (s)->app_conf[module.ctx_index] : NULL)
 
+/* cf 是 ngx_conf_t 类型的指针 */
 #define ngx_rtmp_conf_get_module_main_conf(cf, module)                       \
     ((ngx_rtmp_conf_ctx_t *) cf->ctx)->main_conf[module.ctx_index]
 #define ngx_rtmp_conf_get_module_srv_conf(cf, module)                        \
