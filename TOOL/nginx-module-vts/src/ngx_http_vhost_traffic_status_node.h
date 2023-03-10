@@ -29,7 +29,7 @@ typedef struct {
 typedef struct {
     ngx_msec_int_t                                         msec;
     ngx_atomic_t                                           counter;
-} ngx_http_vhost_traffic_status_node_histogram_t;
+} ngx_http_vhost_traffic_status_node_histogram_t;          // 节点直方图 什么意思
 
 
 typedef struct {
@@ -43,7 +43,7 @@ typedef struct {
     unsigned                                               type;
     ngx_atomic_t                                           response_time_counter;
     ngx_msec_t                                             response_time;
-    ngx_http_vhost_traffic_status_node_time_queue_t        response_times;
+    ngx_http_vhost_traffic_status_node_time_queue_t        response_times;          // 响应时间队列，每一个元素都是一个时间戳
     ngx_http_vhost_traffic_status_node_histogram_bucket_t  response_buckets;
 } ngx_http_vhost_traffic_status_node_upstream_t;
 

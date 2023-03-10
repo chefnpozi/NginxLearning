@@ -821,17 +821,18 @@ ngx_http_vhost_traffic_status_display_set(ngx_http_request_t *r,
     /* init stats */
     ngx_memzero(&vtscf->stats, sizeof(vtscf->stats));
     ngx_http_vhost_traffic_status_node_time_queue_init(&vtscf->stats.stat_request_times);
-
+    // 把数据写入buf中后，使用 ngx_sprintf 来格式化 该JSON字符串
     /* main & connections */
     buf = ngx_sprintf(buf, NGX_HTTP_VHOST_TRAFFIC_STATUS_JSON_FMT_S);
 
-    buf = ngx_http_vhost_traffic_status_display_set_main(r, buf);
+    buf = ngx_http_vhost_traffic_status_display_set_main(r, buf);       // 把数据装到buf中
 
     /* serverZones */
     buf = ngx_sprintf(buf, NGX_HTTP_VHOST_TRAFFIC_STATUS_JSON_FMT_SERVER_S);
 
     buf = ngx_http_vhost_traffic_status_display_set_server(r, buf, node);
 
+    // 对以上 serverZones 中的 node 进行累加的一个 node
     buf = ngx_http_vhost_traffic_status_display_set_server_node(r, buf, &vtscf->sum_key,
                                                                 &vtscf->stats);
 

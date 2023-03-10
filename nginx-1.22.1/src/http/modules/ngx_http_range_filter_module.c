@@ -632,7 +632,7 @@ ngx_http_range_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     ctx = ngx_http_get_module_ctx(r, ngx_http_range_body_filter_module);
 
     if (ctx == NULL) {
-        return ngx_http_next_body_filter(r, in);
+        return ngx_http_next_body_filter(r, in);    // ngx_http_copy_filter
     }
 
     if (ctx->ranges.nelts == 1) {

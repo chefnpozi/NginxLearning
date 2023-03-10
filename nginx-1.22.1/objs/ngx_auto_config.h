@@ -1,4 +1,4 @@
-#define NGX_CONFIGURE " --prefix=/usr/local/src/nginx --with-http_stub_status_module --with-http_gzip_static_module --with-http_realip_module --with-http_sub_module --with-http_ssl_module --with-http_ssl_module --with-pcre-jit --with-openssl=/home/chezi/local/our_code/TOOL/openssl-1.0.1j --with-debug --with-cc-opt='-Werror -W -O0' --add-module=/home/chezi/local/our_code/TOOL/nginx-rtmp-module"
+#define NGX_CONFIGURE " --prefix=/usr/local/src/nginx --with-http_stub_status_module --with-http_gzip_static_module --with-http_realip_module --with-http_sub_module --with-http_ssl_module --with-http_ssl_module --with-pcre-jit --with-openssl=/home/chezi/local/our_code/TOOL/openssl-1.0.1j --with-debug --with-cc-opt='-Werror -W -O0' --add-module=/home/chezi/local/our_code/TOOL/nginx-rtmp-module --add-module=/home/chezi/local/our_code/TOOL/nginx-module-vts"
 
 #ifndef NGX_DEBUG
 #define NGX_DEBUG  1
@@ -405,6 +405,11 @@
 
 #ifndef NGX_HTTP_UPSTREAM_ZONE
 #define NGX_HTTP_UPSTREAM_ZONE  1
+#endif
+
+
+#ifndef NGX_STAT_STUB
+#define NGX_STAT_STUB  1
 #endif
 
 

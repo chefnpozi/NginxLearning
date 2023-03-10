@@ -40,13 +40,13 @@ ngx_http_vhost_traffic_status_display_handler(ngx_http_request_t *r)
 
     p = (u_char *) ngx_strlchr(r->uri.data, r->uri.data + r->uri.len, '/');
 
-    if (p) {
+    if (p) {    // 取出uri 我的uri是 status
         p = (u_char *) ngx_strlchr(p + 1, r->uri.data + r->uri.len, '/');
         len = r->uri.len - (p - r->uri.data);
     }
 
     /* control processing handler */
-    if (p && len >= sizeof("/control") - 1) {
+    if (p && len >= sizeof("/control") - 1) {   // 看有没有control/format，根据要求展示的类型展示数据
         p = r->uri.data + r->uri.len - sizeof("/control") + 1;
         if (ngx_strncasecmp(p, (u_char *) "/control", sizeof("/control") - 1) == 0) {
             rc = ngx_http_vhost_traffic_status_display_handler_control(r);
@@ -55,7 +55,7 @@ ngx_http_vhost_traffic_status_display_handler(ngx_http_request_t *r)
     }
 
     /* default processing handler */
-    rc = ngx_http_vhost_traffic_status_display_handler_default(r);
+    rc = ngx_http_vhost_traffic_status_display_handler_default(r); // 没有格式要求，以JSON类型展示数据
 
 done:
 
@@ -352,7 +352,7 @@ ngx_http_vhost_traffic_status_display_handler_default(ngx_http_request_t *r)
         len = r->uri.len - (size_t) (s - o);
     }
 
-    format = (format == NGX_HTTP_VHOST_TRAFFIC_STATUS_FORMAT_NONE) ? vtscf->format : format;
+    format = (format == NGX_HTTP_VHOST_TRAFFIC_STATUS_FORMAT_NONE) ? vtscf->format : format; // 没有格式要求，默认format为JSON
 
     rc = ngx_http_discard_request_body(r);
     if (rc != NGX_OK) {
@@ -360,7 +360,7 @@ ngx_http_vhost_traffic_status_display_handler_default(ngx_http_request_t *r)
     }
 
     if (format == NGX_HTTP_VHOST_TRAFFIC_STATUS_FORMAT_JSON) {
-        ngx_str_set(&type, "application/json");
+        ngx_str_set(&type, "application/json");                             // 设置打印类型
 
     } else if (format == NGX_HTTP_VHOST_TRAFFIC_STATUS_FORMAT_JSONP) {
         ngx_str_set(&type, "application/javascript");
@@ -372,7 +372,7 @@ ngx_http_vhost_traffic_status_display_handler_default(ngx_http_request_t *r)
         ngx_str_set(&type, "text/html");
     }
 
-    r->headers_out.content_type_len = type.len;
+    r->headers_out.content_type_len = type.len;                             // 赋值为响应头的内容类型 （不应该是响应体吗）
     r->headers_out.content_type = type;
 
     if (r->method == NGX_HTTP_HEAD) {
@@ -392,7 +392,7 @@ ngx_http_vhost_traffic_status_display_handler_default(ngx_http_request_t *r)
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
-    b = ngx_create_temp_buf(r->pool, size);
+    b = ngx_create_temp_buf(r->pool, size);     // 根据size开辟临时内存
     if (b == NULL) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                       "display_handler_default::ngx_create_temp_buf() failed");
@@ -400,12 +400,12 @@ ngx_http_vhost_traffic_status_display_handler_default(ngx_http_request_t *r)
     }
 
     if (format == NGX_HTTP_VHOST_TRAFFIC_STATUS_FORMAT_JSON) {
-        shpool = (ngx_slab_pool_t *) vtscf->shm_zone->shm.addr;
+        shpool = (ngx_slab_pool_t *) vtscf->shm_zone->shm.addr;     // 拿出统计数据吗
         ngx_shmtx_lock(&shpool->mutex);
-        b->last = ngx_http_vhost_traffic_status_display_set(r, b->last);
+        b->last = ngx_http_vhost_traffic_status_display_set(r, b->last); // 将统计数据填充在buf中，并进行格式化
         ngx_shmtx_unlock(&shpool->mutex);
 
-        if (b->last == b->pos) {
+        if (b->last == b->pos) {        // buf中数据为空
             b->last = ngx_sprintf(b->last, "{}");
         }
 
@@ -458,12 +458,12 @@ ngx_http_vhost_traffic_status_display_handler_default(ngx_http_request_t *r)
     out.buf = b;
     out.next = NULL;
 
-    rc = ngx_http_send_header(r);
+    rc = ngx_http_send_header(r);       // 发送响应头
     if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) {
         return rc;
     }
 
-    return ngx_http_output_filter(r, &out);
+    return ngx_http_output_filter(r, &out);     // 发送响应体
 }
 
 
@@ -554,7 +554,7 @@ ngx_http_vhost_traffic_status_display_get_size(ngx_http_request_t *r,
     case NGX_HTTP_VHOST_TRAFFIC_STATUS_FORMAT_JSON:
     case NGX_HTTP_VHOST_TRAFFIC_STATUS_FORMAT_JSONP:
     case NGX_HTTP_VHOST_TRAFFIC_STATUS_FORMAT_PROMETHEUS:
-        size = sizeof(ngx_http_vhost_traffic_status_node_t) / NGX_PTR_SIZE
+        size = sizeof(ngx_http_vhost_traffic_status_node_t) / NGX_PTR_SIZE      // 这里计算的size有什么用呢
                * NGX_ATOMIC_T_LEN * un  /* values size */
                + (un * 1024)            /* names  size */
                + 4096;                  /* main   size */
@@ -573,7 +573,7 @@ ngx_http_vhost_traffic_status_display_get_size(ngx_http_request_t *r,
                    "vts::display_get_size(): size[%ui] used_size[%ui], used_node[%ui]",
                    size, shm_info->used_size, shm_info->used_node);
 
-    return size;
+    return size;    // 13820
 }
 
 

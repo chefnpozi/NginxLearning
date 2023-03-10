@@ -412,7 +412,7 @@ ngx_http_vhost_traffic_status_node_time_queue_zero(
 void
 ngx_http_vhost_traffic_status_node_time_queue_init(
     ngx_http_vhost_traffic_status_node_time_queue_t *q)
-{
+{   // 初始化一个时间队列，每一个元素都是时间戳
     ngx_http_vhost_traffic_status_node_time_queue_zero(q);
     q->rear = NGX_HTTP_VHOST_TRAFFIC_STATUS_DEFAULT_QUEUE_LEN - 1;
     q->len = NGX_HTTP_VHOST_TRAFFIC_STATUS_DEFAULT_QUEUE_LEN;

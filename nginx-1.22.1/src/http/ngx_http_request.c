@@ -1495,7 +1495,7 @@ ngx_http_process_request_headers(ngx_event_t *rev)
                 break;
             }
 
-            ngx_http_process_request(r);
+            ngx_http_process_request(r);        // 处理 http 请求
 
             break;
         }

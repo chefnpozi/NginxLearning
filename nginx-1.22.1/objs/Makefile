@@ -107,7 +107,7 @@ HTTP_INCS = -I src/http \
 	-I src/http/modules
 
 
-ADDON_DEPS = $(CORE_DEPS)                                                                   /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_amf.h                               /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_bandwidth.h                         /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_cmd_module.h                        /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_codec_module.h                      /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_eval.h                              /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp.h                                   /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_version.h                           /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_live_module.h                       /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_netcall_module.h                    /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_play_module.h                       /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_record_module.h                     /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_relay_module.h                      /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_streams.h                           /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_bitop.h                             /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_proxy_protocol.h                    /home/chezi/local/our_code/TOOL/nginx-rtmp-module/hls/ngx_rtmp_mpegts.h                        /home/chezi/local/our_code/TOOL/nginx-rtmp-module/dash/ngx_rtmp_mp4.h                           $(HTTP_DEPS)
+ADDON_DEPS = $(CORE_DEPS)                                                                   /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_amf.h                               /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_bandwidth.h                         /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_cmd_module.h                        /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_codec_module.h                      /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_eval.h                              /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp.h                                   /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_version.h                           /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_live_module.h                       /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_netcall_module.h                    /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_play_module.h                       /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_record_module.h                     /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_relay_module.h                      /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_streams.h                           /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_bitop.h                             /home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_proxy_protocol.h                    /home/chezi/local/our_code/TOOL/nginx-rtmp-module/hls/ngx_rtmp_mpegts.h                        /home/chezi/local/our_code/TOOL/nginx-rtmp-module/dash/ngx_rtmp_mp4.h                                             /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module.h                              /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_variables.h                           /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_string.h                              /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_shm.h                                 /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_node.h                                /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_filter.h                              /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_control.h                             /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_limit.h                               /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display.h                             /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_json.h                        /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_prometheus.h                  /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_set.h                                 /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_dump.h                                /home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module_html.h                          $(HTTP_DEPS)
 
 
 build:	binary modules manpage
@@ -274,6 +274,19 @@ objs/nginx:	objs/src/core/nginx.o \
 	objs/addon/dash/ngx_rtmp_mp4.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_stat_module.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_control_module.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_module.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_variables.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_string.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_shm.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_node.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_filter.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_control.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_limit.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display_json.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_set.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_dump.o \
 	objs/ngx_modules.o
 
 	$(LINK) -o objs/nginx \
@@ -437,6 +450,19 @@ objs/nginx:	objs/src/core/nginx.o \
 	objs/addon/dash/ngx_rtmp_mp4.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_stat_module.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_control_module.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_module.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_variables.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_string.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_shm.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_node.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_filter.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_control.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_limit.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display_json.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_set.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_dump.o \
 	objs/ngx_modules.o \
 	-lcrypt -lpcre /home/chezi/local/our_code/TOOL/openssl-1.0.1j/.openssl/lib/libssl.a /home/chezi/local/our_code/TOOL/openssl-1.0.1j/.openssl/lib/libcrypto.a -lz \
 	-Wl,-E
@@ -1570,6 +1596,97 @@ objs/addon/nginx-rtmp-module/ngx_rtmp_control_module.o:	$(ADDON_DEPS) \
 	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
 		-o objs/addon/nginx-rtmp-module/ngx_rtmp_control_module.o \
 		/home/chezi/local/our_code/TOOL/nginx-rtmp-module/ngx_rtmp_control_module.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_module.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_module.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_variables.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_variables.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_variables.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_variables.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_string.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_string.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_string.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_string.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_shm.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_shm.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_shm.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_shm.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_node.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_node.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_node.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_node.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_filter.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_filter.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_filter.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_filter.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_control.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_control.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_control.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_control.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_limit.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_limit.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_limit.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_limit.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_display.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_display.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_display_json.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_json.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_display_json.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_json.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_prometheus.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_prometheus.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_set.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_set.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_set.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_set.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_dump.o:	$(ADDON_DEPS) \
+	/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_dump.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_dump.o \
+		/home/chezi/local/our_code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_dump.c
 
 
 /home/chezi/local/our_code/TOOL/openssl-1.0.1j/.openssl/include/openssl/ssl.h:	objs/Makefile
