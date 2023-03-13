@@ -1,0 +1,2 @@
+ffmpeg -re -i /var/flv/scenery.flv -c copy -f flv rtmp://127.0.0.1/push/live # 直播推流
+ffmpeg -stream_loop -1 -re -i /var/flv/scenery.flv -c copy -f flv rtmp://127.0.0.1/push # 直播循环推流
