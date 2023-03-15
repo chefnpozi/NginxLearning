@@ -58,7 +58,7 @@ void ngx_strlow(u_char *dst, u_char *src, size_t n);
 
 
 #define ngx_strstr(s1, s2)  strstr((const char *) s1, (const char *) s2)
-#define ngx_strlen(s)       strlen((const char *) s)
+#define ngx_strlen(s)       strlen((const char *) s)    // 计算字符串的长度，带\0吗
 
 size_t ngx_strnlen(u_char *p, size_t n);
 
@@ -67,6 +67,11 @@ size_t ngx_strnlen(u_char *p, size_t n);
 static ngx_inline u_char *
 ngx_strlchr(u_char *p, u_char *last, u_char c)
 {
+    /* p:搜寻的起点
+       last:搜寻的终点
+       查找字符c
+       找到了返回字符c的位置
+       否则返回NULL */ 
     while (p < last) {
 
         if (*p == c) {

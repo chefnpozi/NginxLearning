@@ -122,6 +122,9 @@ ngx_pstrdup(ngx_pool_t *pool, ngx_str_t *src)
 u_char * ngx_cdecl
 ngx_sprintf(u_char *buf, const char *fmt, ...)
 {
+    // 以fmt为格式在buf中填写数据，然后返回填写后可使用的buf->last
+    // fmt中若是有%V这样的缺省项，则在...中按照参数进行填充
+    // 注意填充参数的顺序
     u_char   *p;
     va_list   args;
 

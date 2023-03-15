@@ -76,13 +76,13 @@ typedef struct {
 
 
 typedef struct {
-    ngx_conf_t                 *cf;
-    ngx_str_t                  *value;
-    ngx_http_complex_value_t   *complex_value;
+    ngx_conf_t                 *cf;                 // 关联输入的相关配置指令
+    ngx_str_t                  *value;              // 输入:被解析的string
+    ngx_http_complex_value_t   *complex_value;      // 输出：编译后的值
 
-    unsigned                    zero:1;
-    unsigned                    conf_prefix:1;
-    unsigned                    root_prefix:1;
+    unsigned                    zero:1;             // 标志位：是否使用0来作为最后一位表示终止
+    unsigned                    conf_prefix:1;      // 在结果前面加上 配置前缀（nginx当前查找的目录 配置）
+    unsigned                    root_prefix:1;      // 使用根前缀为结果添加前缀 （正常的nginx安装前缀）
 } ngx_http_compile_complex_value_t;
 
 
