@@ -14,13 +14,13 @@ ngx_int_t
 ngx_http_vhost_traffic_status_node_generate_key(ngx_pool_t *pool,
     ngx_str_t *buf, ngx_str_t *dst, unsigned type)
 {
-    // 域名前面加一个标志，是用来区分 server filter upstream 和 cache 的吗
+    // 域名前面加一个标志，是用来区分 server filter upstream 和 cache
     size_t   len;
     u_char  *p;
 
     len = ngx_strlen(ngx_http_vhost_traffic_status_group_to_string(type));
 
-    buf->len = len + sizeof("@") - 1 + dst->len;
+    buf->len = len + sizeof("@") - 1 + dst->len; // 类型（2）+ 分隔符（1）+ dst(len)
     buf->data = ngx_pcalloc(pool, buf->len);
     if (buf->data == NULL) {
         *buf = *dst;
@@ -29,16 +29,16 @@ ngx_http_vhost_traffic_status_node_generate_key(ngx_pool_t *pool,
 
     p = buf->data;
 
-    p = ngx_cpymem(p, ngx_http_vhost_traffic_status_group_to_string(type), len);
-    *p++ = NGX_HTTP_VHOST_TRAFFIC_STATUS_KEY_SEPARATOR;
-    p = ngx_cpymem(p, dst->data, dst->len);
-
+    p = ngx_cpymem(p, ngx_http_vhost_traffic_status_group_to_string(type), len);    // ex: UG       类型
+    *p++ = NGX_HTTP_VHOST_TRAFFIC_STATUS_KEY_SEPARATOR;                             // ex: UG\037   分隔符
+    p = ngx_cpymem(p, dst->data, dst->len);                                         // ex: UG\037upstream_server\037\061\062\067.0.0.1:12313 dst
+    // \037 \061 \062 \067 各占一位，共计4位
     return NGX_OK;
 }
 
 
 ngx_int_t
-ngx_http_vhost_traffic_status_node_position_key(ngx_str_t *buf, size_t pos)
+ngx_http_vhost_traffic_status_node_position_key(ngx_str_t *buf, size_t pos) // 取出buf中第pos个分隔符到第pos+1个分隔符中间的数据
 {
     size_t   n, c, len;
     u_char  *p, *s;
@@ -48,7 +48,7 @@ ngx_http_vhost_traffic_status_node_position_key(ngx_str_t *buf, size_t pos)
     p = s = buf->data;
 
     while (--n) {
-        if (*p == NGX_HTTP_VHOST_TRAFFIC_STATUS_KEY_SEPARATOR) {
+        if (*p == NGX_HTTP_VHOST_TRAFFIC_STATUS_KEY_SEPARATOR) { // FG\037upstream_server\037\061\062\067.0.0.1 中的 \037
             if (pos == c) {
                 break;
             }
@@ -59,7 +59,7 @@ ngx_http_vhost_traffic_status_node_position_key(ngx_str_t *buf, size_t pos)
         len = (p - s);
     }
 
-    if (pos > c || len == 0) {
+    if (pos > c || len == 0) {  // n:10 c:1 len:15 pos:1 
         return NGX_ERROR;
     }
 
@@ -364,7 +364,7 @@ ngx_http_vhost_traffic_status_node_set(ngx_http_request_t *r,
     ovtsn = *vtsn;
 
     ms = ngx_http_vhost_traffic_status_request_time(r);
-    ngx_http_vhost_traffic_status_node_update(r, vtsn, ms);
+    ngx_http_vhost_traffic_status_node_update(r, vtsn, ms);     // 根据当前请求的信息来更新相关的vtsn
 
     vtsn->stat_request_time = ngx_http_vhost_traffic_status_node_time_queue_average(
                                   &vtsn->stat_request_times, vtscf->average_method,

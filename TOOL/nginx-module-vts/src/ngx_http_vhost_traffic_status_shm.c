@@ -160,7 +160,7 @@ ngx_http_vhost_traffic_status_shm_add_node(ngx_http_request_t *r,
     } else {
         init = NGX_HTTP_VHOST_TRAFFIC_STATUS_NODE_FIND;
         vtsn = (ngx_http_vhost_traffic_status_node_t *) &node->color;
-        ngx_http_vhost_traffic_status_node_set(r, vtsn);
+        ngx_http_vhost_traffic_status_node_set(r, vtsn);        // upstream server 都是使用 vtsn 来进行统计赋值
     }
 
     /* set addition */
@@ -170,12 +170,12 @@ ngx_http_vhost_traffic_status_shm_add_node(ngx_http_request_t *r,
 
     case NGX_HTTP_VHOST_TRAFFIC_STATUS_UPSTREAM_UA:
     case NGX_HTTP_VHOST_TRAFFIC_STATUS_UPSTREAM_UG:
-        (void) ngx_http_vhost_traffic_status_shm_add_node_upstream(r, vtsn, init);
+        (void) ngx_http_vhost_traffic_status_shm_add_node_upstream(r, vtsn, init);  // upstream 额外统计的字段 
         break;
 
 #if (NGX_HTTP_CACHE)
     case NGX_HTTP_VHOST_TRAFFIC_STATUS_UPSTREAM_CC:
-        (void) ngx_http_vhost_traffic_status_shm_add_node_cache(r, vtsn, init);
+        (void) ngx_http_vhost_traffic_status_shm_add_node_cache(r, vtsn, init);     // cache 额外统计的字段 
         break;
 #endif
 
@@ -301,7 +301,7 @@ ngx_http_vhost_traffic_status_shm_add_filter_node(ngx_http_request_t *r,
         if (filters[i].filter_key.value.len <= 0) {
             continue;
         }
-
+        // 取出该请求的 filter_key 和 filter_name 按照这两个来生成红黑树中 vtsn 的 key
         if (ngx_http_complex_value(r, &filters[i].filter_key, &filter_key) != NGX_OK) {
             return NGX_ERROR;
         }
@@ -315,6 +315,7 @@ ngx_http_vhost_traffic_status_shm_add_filter_node(ngx_http_request_t *r,
         }
 
         if (filter_name.len == 0) {
+            // 如果没有filter_name,只有filter_key使用NO这个类型，然后使用filter_key去生成key
             type = NGX_HTTP_VHOST_TRAFFIC_STATUS_UPSTREAM_NO;
 
             rc = ngx_http_vhost_traffic_status_node_generate_key(r->pool, &key, &filter_key, type);
@@ -326,7 +327,7 @@ ngx_http_vhost_traffic_status_shm_add_filter_node(ngx_http_request_t *r,
             type = filter_name.len
                    ? NGX_HTTP_VHOST_TRAFFIC_STATUS_UPSTREAM_FG
                    : NGX_HTTP_VHOST_TRAFFIC_STATUS_UPSTREAM_NO;
-
+            // dst = filter_name + 分隔符 + filter_key
             dst.len = filter_name.len + sizeof("@") - 1 + filter_key.len;
             dst.data = ngx_pnalloc(r->pool, dst.len);
             if (dst.data == NULL) {
@@ -343,7 +344,7 @@ ngx_http_vhost_traffic_status_shm_add_filter_node(ngx_http_request_t *r,
                 return NGX_ERROR;
             }
         }
-
+        // 如果没有filter_name,这只是一个很普通的server_node
         rc = ngx_http_vhost_traffic_status_shm_add_node(r, &key, type);
         if (rc != NGX_OK) {
             ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
@@ -490,7 +491,7 @@ found:
         return NGX_ERROR;
     }
 
-    dst.len = (uscf->port ? 0 : uscf->host.len + sizeof("@") - 1) + state->peer->len;
+    dst.len = (uscf->port ? 0 : uscf->host.len + sizeof("@") - 1) + state->peer->len; // sizeof("@") is 2
     dst.data = ngx_pnalloc(r->pool, dst.len);
     if (dst.data == NULL) {
         return NGX_ERROR;

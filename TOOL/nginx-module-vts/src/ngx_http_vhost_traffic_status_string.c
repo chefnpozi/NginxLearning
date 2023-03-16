@@ -86,7 +86,7 @@ ngx_http_vhost_traffic_status_escape_json_pool(ngx_pool_t *pool,
 #if !defined(nginx_version) || nginx_version < 1007009
     p = (u_char *) ngx_http_vhost_traffic_status_escape_json(p, dst->data, dst->len);
 #else
-    p = (u_char *) ngx_escape_json(p, dst->data, dst->len);
+    p = (u_char *) ngx_escape_json(p, dst->data, dst->len);     // 如果没有转义字符，基本上是原样复制
 #endif
 
     buf->len = ngx_strlen(buf->data);

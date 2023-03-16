@@ -57,6 +57,7 @@ ngx_http_vhost_traffic_status_display_set_server_node(
     u_char *buf, ngx_str_t *key,
     ngx_http_vhost_traffic_status_node_t *vtsn)
 {
+    // 通过ngx_sprintf打印出serverZone中基本的一个格子
     u_char                                    *p, *c;
     ngx_int_t                                  rc;
     ngx_str_t                                  tmp, dst;
@@ -64,18 +65,24 @@ ngx_http_vhost_traffic_status_display_set_server_node(
 
     vtscf = ngx_http_get_module_loc_conf(r, ngx_http_vhost_traffic_status_module);
 
+    
     tmp = *key;
 
+    ngx_log_error(NGX_LOG_NOTICE, r->connection->log, 0,
+                          "display_set_server_node::node_position_key() key[%s:%p:%d], tmp[:%p:%d]",
+                          key->data, key->len, tmp.data, tmp.len);
+    ngx_log_error(NGX_LOG_NOTICE, r->connection->log, 0, "tmp is %V", &tmp);
     rc = ngx_http_vhost_traffic_status_node_position_key(&tmp, 1);
-    if (rc != NGX_OK) {
+    ngx_log_error(NGX_LOG_NOTICE, r->connection->log, 0, "tmp is %V", &tmp);
+    if (rc != NGX_OK) { // 没有成功切分出来
         /* 
          * If this function is called in the
          * ngx_http_vhost_traffic_status_display_set_filter_node() function,
          * there is no NGX_HTTP_VHOST_TRAFFIC_STATUS_KEY_SEPARATOR in key->data.
-         * It is normal.
+         * It is normal. 对于filter来说，key中没有分隔符是很正常的现象
          */
-        p = ngx_strlchr(key->data, key->data + key->len, NGX_HTTP_VHOST_TRAFFIC_STATUS_KEY_SEPARATOR);
-        if (p != NULL) {
+        p = ngx_strlchr(key->data, key->data + key->len, NGX_HTTP_VHOST_TRAFFIC_STATUS_KEY_SEPARATOR);  // 看未切分的key中是否有分隔符
+        if (p != NULL) {    // 若是有分隔符，那证明确实出现了错误
             p = ngx_pnalloc(r->pool, key->len * 2 + 1);
             c = ngx_hex_dump(p, key->data, key->len);
             *c = '\0';
@@ -191,6 +198,7 @@ ngx_http_vhost_traffic_status_display_set_server(ngx_http_request_t *r,
     vtscf = ngx_http_get_module_loc_conf(r, ngx_http_vhost_traffic_status_module);
 
     if (node != ctx->rbtree->sentinel) {
+        // 递归的遍历这棵红黑树的左子树和右子树
         vtsn = (ngx_http_vhost_traffic_status_node_t *) &node->color;
 
         if (vtsn->stat_upstream.type == NGX_HTTP_VHOST_TRAFFIC_STATUS_UPSTREAM_NO) {
@@ -199,8 +207,9 @@ ngx_http_vhost_traffic_status_display_set_server(ngx_http_request_t *r,
 
             ovtsn = vtscf->stats;
 
-            buf = ngx_http_vhost_traffic_status_display_set_server_node(r, buf, &key, vtsn);
+            buf = ngx_http_vhost_traffic_status_display_set_server_node(r, buf, &key, vtsn); // gdb
 
+            // 遍历整棵红黑树后，当前的所有数据已经汇总，最后再调用ngx_http_vhost_traffic_status_display_set_server_node打印出sum的数据
             /* calculates the sum */
             vtscf->stats.stat_request_counter += vtsn->stat_request_counter;
             vtscf->stats.stat_in_bytes += vtsn->stat_in_bytes;
@@ -280,7 +289,7 @@ ngx_http_vhost_traffic_status_display_set_filter_node(ngx_http_request_t *r,
 
     key.data = vtsn->data;
     key.len = vtsn->len;
-
+    // 通过分隔符切割key得到filter_name
     (void) ngx_http_vhost_traffic_status_node_position_key(&key, 2);
 
     return ngx_http_vhost_traffic_status_display_set_server_node(r, buf, &key, vtsn);
@@ -300,7 +309,7 @@ ngx_http_vhost_traffic_status_display_set_filter(ngx_http_request_t *r,
     /* init array */
     filter_keys = NULL;
     filter_nodes = NULL;
-
+    // 遍历所有的vtsn，找出类型为FG的节点，然后把这些vtsn的key按照分隔符截取后做成一个数组。
     rc = ngx_http_vhost_traffic_status_filter_get_keys(r, &filter_keys, node);
 
     if (filter_keys != NULL && rc == NGX_OK) {
@@ -308,6 +317,7 @@ ngx_http_vhost_traffic_status_display_set_filter(ngx_http_request_t *r,
         n = filter_keys->nelts;
 
         if (n > 1) {
+            // 有相同的key，先排序，方便下面的continue，把所有相同的key做成一组
             ngx_qsort(keys, (size_t) n,
                       sizeof(ngx_http_vhost_traffic_status_filter_key_t),
                       ngx_http_traffic_status_filter_cmp_keys);
@@ -321,12 +331,12 @@ ngx_http_vhost_traffic_status_display_set_filter(ngx_http_request_t *r,
                     continue;
                 }
             }
-            key = keys[i].key;
+            key = keys[i].key;  // 这样去执行的话，每次的key都是不同的，不会重复执行
 
-            rc = ngx_http_vhost_traffic_status_filter_get_nodes(r, &filter_nodes, &key, node);
+            rc = ngx_http_vhost_traffic_status_filter_get_nodes(r, &filter_nodes, &key, node);          // 遍历，使得具有相同key的vtsn分在一组
 
             if (filter_nodes != NULL && rc == NGX_OK) {
-                rc = ngx_http_vhost_traffic_status_escape_json_pool(r->pool, &filter, &keys[i].key);
+                rc = ngx_http_vhost_traffic_status_escape_json_pool(r->pool, &filter, &keys[i].key);    // 基本上原样复制key中的内容到filter
                 if (rc != NGX_OK) {
                     ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                                   "display_set_filter::escape_json_pool() failed");
@@ -337,6 +347,7 @@ ngx_http_vhost_traffic_status_display_set_filter(ngx_http_request_t *r,
 
                 nodes = filter_nodes->elts;
                 for (j = 0; j < filter_nodes->nelts; j++) {
+                    // 按照分隔符取出vtsn->data中的第二段filter_name，然后使用ngx_http_vhost_traffic_status_display_set_server_node填充buf
                     buf = ngx_http_vhost_traffic_status_display_set_filter_node(r, buf,
                               nodes[j].node);
                 }
@@ -847,7 +858,7 @@ ngx_http_vhost_traffic_status_display_set(ngx_http_request_t *r,
 
     s = buf;
 
-    buf = ngx_http_vhost_traffic_status_display_set_filter(r, buf, node);
+    buf = ngx_http_vhost_traffic_status_display_set_filter(r, buf, node);       // 填充filterZone中的数据部分
 
     if (s == buf) {
         buf = o;

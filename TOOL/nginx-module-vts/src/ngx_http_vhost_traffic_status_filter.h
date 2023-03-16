@@ -9,8 +9,8 @@
 
 
 typedef struct {
-    ngx_http_complex_value_t               filter_key;
-    ngx_http_complex_value_t               filter_name;
+    ngx_http_complex_value_t               filter_key;      // vhost_traffic_status_filter_by_set_key 第一个参数
+    ngx_http_complex_value_t               filter_name;     // vhost_traffic_status_filter_by_set_key 第二个参数
 } ngx_http_vhost_traffic_status_filter_t;
 
 

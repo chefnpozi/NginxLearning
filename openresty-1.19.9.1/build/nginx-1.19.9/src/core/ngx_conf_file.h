@@ -125,7 +125,7 @@ struct ngx_conf_s {
 
     void                 *ctx;
     ngx_uint_t            module_type;
-    ngx_uint_t            cmd_type;
+    ngx_uint_t            cmd_type;         // 区分该配置指令是属于哪个块下的 ex: NGX_HTTP_MAIN_CONF or NGX_HTTP_SRV_CONF
 
     ngx_conf_handler_pt   handler;
     void                 *handler_conf;

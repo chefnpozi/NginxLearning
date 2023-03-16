@@ -145,15 +145,17 @@ ngx_http_vhost_traffic_status_filter_get_keys(ngx_http_request_t *r,
         vtsn = (ngx_http_vhost_traffic_status_node_t *) &node->color;
 
         if (vtsn->stat_upstream.type == NGX_HTTP_VHOST_TRAFFIC_STATUS_UPSTREAM_FG) {
+            // vtsn->data 是生成的key ex: UP\037localhost037...
             key.data = vtsn->data;
             key.len = vtsn->len;
 
-            rc = ngx_http_vhost_traffic_status_node_position_key(&key, 1);
+            rc = ngx_http_vhost_traffic_status_node_position_key(&key, 1);      // 取出分隔符之间的数据 比如上例中的 localhost
             if (rc != NGX_OK) {
                 goto next;
             }
 
             if (*filter_keys == NULL) {
+                // 这里创建的keys数组装的是满足position_key的vtsn->data
                 *filter_keys = ngx_array_create(r->pool, 1,
                                   sizeof(ngx_http_vhost_traffic_status_filter_key_t));
 
@@ -163,7 +165,7 @@ ngx_http_vhost_traffic_status_filter_get_keys(ngx_http_request_t *r,
                     return NGX_ERROR;
                 }
             }
-
+            // 将上述从分隔符中切出的 localhost 存入 filter_keys 数组中，准确的说是存入数组元素的 key 这个字段中
             keys = ngx_array_push(*filter_keys);
             if (keys == NULL) {
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
@@ -196,7 +198,7 @@ next:
     return NGX_OK;
 }
 
-
+// 通过树的递归遍历，找出所有key为name的vtsn，封装在filter_nodes数组中
 ngx_int_t
 ngx_http_vhost_traffic_status_filter_get_nodes(ngx_http_request_t *r,
     ngx_array_t **filter_nodes, ngx_str_t *name,
@@ -212,11 +214,11 @@ ngx_http_vhost_traffic_status_filter_get_nodes(ngx_http_request_t *r,
 
     if (node != ctx->rbtree->sentinel) {
         vtsn = (ngx_http_vhost_traffic_status_node_t *) &node->color;
-
+        // 找出类型为FG的vtsn
         if (vtsn->stat_upstream.type == NGX_HTTP_VHOST_TRAFFIC_STATUS_UPSTREAM_FG) {
             key.data = vtsn->data;
             key.len = vtsn->len;
-
+            // 按照分隔符对key进行切分
             rc = ngx_http_vhost_traffic_status_node_position_key(&key, 1);
             if (rc != NGX_OK) {
                 goto next;
@@ -225,11 +227,11 @@ ngx_http_vhost_traffic_status_filter_get_nodes(ngx_http_request_t *r,
             if (name->len != key.len) {
                 goto next;
             }
-
+            // 通过对比，找出key为name的vtsn，加入到当前的数组中去
             if (ngx_strncmp(name->data, key.data, key.len) != 0) {
                 goto next;
             }
-
+            // 当前key为name的数组不存在，创建一个
             if (*filter_nodes == NULL) {
                 *filter_nodes = ngx_array_create(r->pool, 1,
                                     sizeof(ngx_http_vhost_traffic_status_filter_node_t));
@@ -302,6 +304,7 @@ char *
 ngx_http_vhost_traffic_status_filter_by_set_key(ngx_conf_t *cf, ngx_command_t *cmd,
     void *conf)
 {
+    // 把当前配置指令中的filter_key和filter_name打包成一个filter，装入filter_keys中
     ngx_http_vhost_traffic_status_loc_conf_t *vtscf = conf;
 
     ngx_str_t                               *value, name;
@@ -338,6 +341,7 @@ ngx_http_vhost_traffic_status_filter_by_set_key(ngx_conf_t *cf, ngx_command_t *c
     /* first argument process */
     ngx_memzero(&ccv, sizeof(ngx_http_compile_complex_value_t));
 
+    // 通过ccv把cf中的参数值取出来，一般是变量，将变量转化为ngx变量，赋给filter_key和filter_name
     ccv.cf = cf;
     ccv.value = &value[1];
     ccv.complex_value = &filter->filter_key;
@@ -362,6 +366,32 @@ ngx_http_vhost_traffic_status_filter_by_set_key(ngx_conf_t *cf, ngx_command_t *c
 
     if (ngx_http_compile_complex_value(&ccv) != NGX_OK) {
         return NGX_CONF_ERROR;
+    }
+
+    ngx_http_vhost_traffic_status_filter_t  *cur_filters;
+    cur_filters = filter_keys->elts;
+    ngx_conf_log_error(NGX_LOG_NOTICE, cf, 0,
+                                   "filter_keys->nelts is %d",
+                                   filter_keys->nelts);
+    for (ngx_uint_t i = 0; i < filter_keys->nelts; i++) {
+
+        if (cur_filters[i].filter_key.value.len > 0) {
+            ngx_conf_log_error(NGX_LOG_NOTICE, cf, 0,
+                               "cur_filters[%ud].filter_key.value is %V",
+                               i, &cur_filters[i].filter_key.value);
+        } else {
+            ngx_conf_log_error(NGX_LOG_NOTICE, cf, 0,
+                               "cur_filters[%ud].filter_key.value.len <= 0", i);
+        }
+        
+        if (cur_filters[i].filter_name.value.len > 0) {
+            ngx_conf_log_error(NGX_LOG_NOTICE, cf, 0,
+                               "cur_filters[%ud].filter_name.value is %V",
+                               i, &cur_filters[i].filter_name.value);
+        } else {
+            ngx_conf_log_error(NGX_LOG_NOTICE, cf, 0,
+                               "cur_filters[%ud].filter_name.value.len <= 0", i);
+        }
     }
 
     if (cf->cmd_type == NGX_HTTP_MAIN_CONF) {
