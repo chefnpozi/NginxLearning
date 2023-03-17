@@ -1856,7 +1856,7 @@ ngx_escape_html(u_char *dst, u_char *src, size_t size)
     return (uintptr_t) dst;
 }
 
-// 似乎是在对转义符号进行改动 \n 转为 \\n
+
 uintptr_t
 ngx_escape_json(u_char *dst, u_char *src, size_t size)
 {

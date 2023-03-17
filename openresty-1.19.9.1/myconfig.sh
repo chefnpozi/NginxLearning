@@ -4,10 +4,16 @@
                                                     --with-pcre-jit \
                                                     --with-luajit \
                                                     --with-debug \
+                                                    --with-stream \
                                                     --with-openssl=${resty_path}/TOOL/openssl-1.1.1t \
                                                     --with-cc-opt="-Werror -W -O0" \
-                                                    --add-module=${resty_path}/TOOL/nginx-rtmp-module \
-                                                    --add-module=${resty_path}/TOOL/nginx-module-vts; make && make install
+                                                    --add-module=${resty_path}/TOOL/nginx-module-vts \
+                                                    --add-module=${resty_path}/TOOL/nginx-module-sts \
+                                                    --add-module=${resty_path}/TOOL/nginx-module-stream-sts \
+                                                    --add-module=${resty_path}/TOOL/nginx-rtmp-module ; make && make install
 
-
+# --add-module=${resty_path}/TOOL/nginx-rtmp-module \
+# --add-module=${resty_path}/TOOL/nginx-module-sts \
+# --add-module=${resty_path}/TOOL/nginx-module-stream-sts \
+# --add-module=${resty_path}/TOOL/nginx-http-flv-module \ 
                                             

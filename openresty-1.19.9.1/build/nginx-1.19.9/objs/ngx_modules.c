@@ -77,9 +77,10 @@ extern ngx_module_t  ngx_http_array_var_module;
 extern ngx_module_t  ngx_http_memc_module;
 extern ngx_module_t  ngx_http_redis2_module;
 extern ngx_module_t  ngx_http_redis_module;
+extern ngx_module_t  ngx_http_vhost_traffic_status_module;
+extern ngx_module_t  ngx_http_stream_server_traffic_status_module;
 extern ngx_module_t  ngx_rtmp_stat_module;
 extern ngx_module_t  ngx_rtmp_control_module;
-extern ngx_module_t  ngx_http_vhost_traffic_status_module;
 extern ngx_module_t  ngx_http_write_filter_module;
 extern ngx_module_t  ngx_http_header_filter_module;
 extern ngx_module_t  ngx_http_chunked_filter_module;
@@ -121,6 +122,7 @@ extern ngx_module_t  ngx_stream_upstream_random_module;
 extern ngx_module_t  ngx_stream_upstream_zone_module;
 extern ngx_module_t  ngx_stream_ssl_preread_module;
 extern ngx_module_t  ngx_stream_lua_module;
+extern ngx_module_t  ngx_stream_server_traffic_status_module;
 
 ngx_module_t *ngx_modules[] = {
     &ngx_core_module,
@@ -196,9 +198,10 @@ ngx_module_t *ngx_modules[] = {
     &ngx_http_memc_module,
     &ngx_http_redis2_module,
     &ngx_http_redis_module,
+    &ngx_http_vhost_traffic_status_module,
+    &ngx_http_stream_server_traffic_status_module,
     &ngx_rtmp_stat_module,
     &ngx_rtmp_control_module,
-    &ngx_http_vhost_traffic_status_module,
     &ngx_http_write_filter_module,
     &ngx_http_header_filter_module,
     &ngx_http_chunked_filter_module,
@@ -240,6 +243,7 @@ ngx_module_t *ngx_modules[] = {
     &ngx_stream_upstream_zone_module,
     &ngx_stream_ssl_preread_module,
     &ngx_stream_lua_module,
+    &ngx_stream_server_traffic_status_module,
     NULL
 };
 
@@ -317,9 +321,10 @@ char *ngx_module_names[] = {
     "ngx_http_memc_module",
     "ngx_http_redis2_module",
     "ngx_http_redis_module",
+    "ngx_http_vhost_traffic_status_module",
+    "ngx_http_stream_server_traffic_status_module",
     "ngx_rtmp_stat_module",
     "ngx_rtmp_control_module",
-    "ngx_http_vhost_traffic_status_module",
     "ngx_http_write_filter_module",
     "ngx_http_header_filter_module",
     "ngx_http_chunked_filter_module",
@@ -361,6 +366,7 @@ char *ngx_module_names[] = {
     "ngx_stream_upstream_zone_module",
     "ngx_stream_ssl_preread_module",
     "ngx_stream_lua_module",
+    "ngx_stream_server_traffic_status_module",
     NULL
 };
 

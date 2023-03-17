@@ -185,7 +185,7 @@ cc -DNGX_LUA_USE_ASSERT -DNGX_LUA_ABORT_AT_PANIC -O2 -Werror -W -O0 -D_GNU_SOURC
 ----------------------------------------
 checking for crypt()
 
-/usr/bin/ld: /tmp/ccLl0rSk.o: in function `main':
+/usr/bin/ld: /tmp/ccy6jfD9.o: in function `main':
 autotest.c:(.text+0x1d): undefined reference to `crypt'
 collect2: error: ld returned 1 exit status
 ----------

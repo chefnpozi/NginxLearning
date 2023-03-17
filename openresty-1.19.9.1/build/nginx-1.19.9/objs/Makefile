@@ -139,7 +139,7 @@ STREAM_INCS = -I src/stream \
 	-I /home/chezi/resty_code/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/include/luajit-2.1
 
 
-ADDON_DEPS = $(CORE_DEPS)  ../ngx_devel_kit-0.3.1/src/ndk.h                                                                          ../echo-nginx-module-0.62/src/ddebug.h                                                 ../echo-nginx-module-0.62/src/ngx_http_echo_module.h                                   ../echo-nginx-module-0.62/src/ngx_http_echo_handler.h                                  ../echo-nginx-module-0.62/src/ngx_http_echo_util.h                                     ../echo-nginx-module-0.62/src/ngx_http_echo_sleep.h                                    ../echo-nginx-module-0.62/src/ngx_http_echo_filter.h                                   ../echo-nginx-module-0.62/src/ngx_http_echo_var.h                                      ../echo-nginx-module-0.62/src/ngx_http_echo_location.h                                 ../echo-nginx-module-0.62/src/ngx_http_echo_echo.h                                     ../echo-nginx-module-0.62/src/ngx_http_echo_request_info.h                             ../echo-nginx-module-0.62/src/ngx_http_echo_subrequest.h                               ../echo-nginx-module-0.62/src/ngx_http_echo_foreach.h                                   ../xss-nginx-module-0.06/src/ddebug.h ../xss-nginx-module-0.06/src/ngx_http_xss_filter_module.h ../xss-nginx-module-0.06/src/ngx_http_xss_util.h ../ngx_coolkit-0.2/src/ngx_coolkit_handlers.h ../ngx_coolkit-0.2/src/ngx_coolkit_module.h ../ngx_coolkit-0.2/src/ngx_coolkit_variables.h                                                                          ../set-misc-nginx-module-0.32/src/ddebug.h                                                 ../set-misc-nginx-module-0.32/src/ngx_http_set_default_value.h                             ../set-misc-nginx-module-0.32/src/ngx_http_set_hashed_upstream.h                           ../set-misc-nginx-module-0.32/src/ngx_http_set_quote_sql.h                                 ../set-misc-nginx-module-0.32/src/ngx_http_set_quote_json.h                                ../set-misc-nginx-module-0.32/src/ngx_http_set_unescape_uri.h                              ../set-misc-nginx-module-0.32/src/ngx_http_set_escape_uri.h                                ../set-misc-nginx-module-0.32/src/ngx_http_set_hash.h                                      ../set-misc-nginx-module-0.32/src/ngx_http_set_local_today.h                               ../set-misc-nginx-module-0.32/src/ngx_http_set_hex.h                                       ../set-misc-nginx-module-0.32/src/ngx_http_set_base64.h                                    ../set-misc-nginx-module-0.32/src/ngx_http_set_random.h                                    ../set-misc-nginx-module-0.32/src/ngx_http_set_rotate.h                                    ../set-misc-nginx-module-0.32/src/ngx_http_set_secure_random.h                             ../set-misc-nginx-module-0.32/src/ngx_http_set_misc_module.h                                ../set-misc-nginx-module-0.32/src/ngx_http_set_hmac.h ../form-input-nginx-module-0.12/src/ddebug.h                                                                    ../encrypted-session-nginx-module-0.08/src/ddebug.h                                                 ../encrypted-session-nginx-module-0.08/src/ngx_http_encrypted_session_cipher.h                                                                                                 ../srcache-nginx-module-0.32/src/ddebug.h                                                 ../srcache-nginx-module-0.32/src/ngx_http_srcache_filter_module.h                         ../srcache-nginx-module-0.32/src/ngx_http_srcache_util.h                                  ../srcache-nginx-module-0.32/src/ngx_http_srcache_var.h                                   ../srcache-nginx-module-0.32/src/ngx_http_srcache_fetch.h                                 ../srcache-nginx-module-0.32/src/ngx_http_srcache_store.h                                 ../srcache-nginx-module-0.32/src/ngx_http_srcache_headers.h                                             ../ngx_lua-0.10.20/src/ddebug.h             ../ngx_lua-0.10.20/src/ngx_http_lua_autoconf.h             ../ngx_lua-0.10.20/src/ngx_http_lua_script.h             ../ngx_lua-0.10.20/src/ngx_http_lua_log.h             ../ngx_lua-0.10.20/src/ngx_http_lua_subrequest.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ndk.h             ../ngx_lua-0.10.20/src/ngx_http_lua_control.h             ../ngx_lua-0.10.20/src/ngx_http_lua_string.h             ../ngx_lua-0.10.20/src/ngx_http_lua_misc.h             ../ngx_lua-0.10.20/src/ngx_http_lua_output.h             ../ngx_lua-0.10.20/src/ngx_http_lua_headers.h             ../ngx_lua-0.10.20/src/ngx_http_lua_uri.h             ../ngx_lua-0.10.20/src/ngx_http_lua_req_body.h             ../ngx_lua-0.10.20/src/ngx_http_lua_args.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ctx.h             ../ngx_lua-0.10.20/src/ngx_http_lua_common.h             ../ngx_lua-0.10.20/src/ngx_http_lua_directive.h             ../ngx_lua-0.10.20/src/ngx_http_lua_headers_out.h             ../ngx_lua-0.10.20/src/ngx_http_lua_headers_in.h             ../ngx_lua-0.10.20/src/ngx_http_lua_consts.h             ../ngx_lua-0.10.20/src/ngx_http_lua_exception.h             ../ngx_lua-0.10.20/src/ngx_http_lua_util.h             ../ngx_lua-0.10.20/src/ngx_http_lua_cache.h             ../ngx_lua-0.10.20/src/ngx_http_lua_contentby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_rewriteby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_accessby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_setby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_capturefilter.h             ../ngx_lua-0.10.20/src/ngx_http_lua_clfactory.h             ../ngx_lua-0.10.20/src/ngx_http_lua_pcrefix.h             ../ngx_lua-0.10.20/src/ngx_http_lua_headerfilterby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_shdict.h             ../ngx_lua-0.10.20/src/ngx_http_lua_socket_tcp.h             ../ngx_lua-0.10.20/src/api/ngx_http_lua_api.h             ../ngx_lua-0.10.20/src/ngx_http_lua_logby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_sleep.h             ../ngx_lua-0.10.20/src/ngx_http_lua_semaphore.h            ../ngx_lua-0.10.20/src/ngx_http_lua_coroutine.h             ../ngx_lua-0.10.20/src/ngx_http_lua_bodyfilterby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_initby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_initworkerby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_exitworkerby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_socket_udp.h             ../ngx_lua-0.10.20/src/ngx_http_lua_probe.h             ../ngx_lua-0.10.20/src/ngx_http_lua_uthread.h             ../ngx_lua-0.10.20/src/ngx_http_lua_timer.h             ../ngx_lua-0.10.20/src/ngx_http_lua_config.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ssl_certby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_lex.h             ../ngx_lua-0.10.20/src/ngx_http_lua_balancer.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ssl_session_storeby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ssl_session_fetchby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ssl.h             ../ngx_lua-0.10.20/src/ngx_http_lua_log_ringbuf.h             ../ngx_lua-0.10.20/src/ngx_http_lua_input_filters.h             ../ngx_lua-0.10.20/src/ngx_http_lua_pipe.h                                                                                       ../headers-more-nginx-module-0.33/src/ddebug.h                                                 ../headers-more-nginx-module-0.33/src/ngx_http_headers_more_filter_module.h                    ../headers-more-nginx-module-0.33/src/ngx_http_headers_more_headers_in.h                       ../headers-more-nginx-module-0.33/src/ngx_http_headers_more_headers_out.h                      ../headers-more-nginx-module-0.33/src/ngx_http_headers_more_headers_in.h                       ../headers-more-nginx-module-0.33/src/ngx_http_headers_more_util.h                                                                                                         ../array-var-nginx-module-0.05/src/ddebug.h                                                 ../array-var-nginx-module-0.05/src/ngx_http_array_var_util.h                                                                                                          ../memc-nginx-module-0.19/src/ddebug.h                                                 ../memc-nginx-module-0.19/src/ngx_http_memc_module.h                                   ../memc-nginx-module-0.19/src/ngx_http_memc_request.h                                  ../memc-nginx-module-0.19/src/ngx_http_memc_response.h                                 ../memc-nginx-module-0.19/src/ngx_http_memc_util.h                                     ../memc-nginx-module-0.19/src/ngx_http_memc_handler.h                                                                                                              ../redis2-nginx-module-0.15/src/ddebug.h                                                 ../redis2-nginx-module-0.15/src/ngx_http_redis2_module.h                                 ../redis2-nginx-module-0.15/src/ngx_http_redis2_handler.h                                ../redis2-nginx-module-0.15/src/ngx_http_redis2_reply.h                                  ../redis2-nginx-module-0.15/src/ngx_http_redis2_util.h                                    ../rds-json-nginx-module-0.15/src/ddebug.h ../rds-json-nginx-module-0.15/src/resty_dbd_stream.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_json_filter_module.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_json_processor.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_json_util.h ../rds-json-nginx-module-0.15/src/ngx_http_rds.h ../rds-json-nginx-module-0.15/src/resty_dbd_stream.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_json_output.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_utils.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_json_handler.h ../rds-csv-nginx-module-0.09/src/ddebug.h ../rds-csv-nginx-module-0.09/src/resty_dbd_stream.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds_csv_filter_module.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds_csv_processor.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds_csv_util.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds.h ../rds-csv-nginx-module-0.09/src/resty_dbd_stream.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds_csv_output.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds_utils.h                  ../ngx_stream_lua-0.0.10/src/ddebug.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_autoconf.h                 ../ngx_stream_lua-0.0.10/src/api/ngx_stream_lua_api.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_request.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_common.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_lex.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_contentby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_util.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_cache.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_clfactory.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_pcrefix.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_uthread.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_coroutine.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_output.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_consts.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_log.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_string.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_control.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_sleep.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_phase.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_ctx.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_script.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_shdict.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_timer.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_config.h                 ../ngx_stream_lua-0.0.10/src/api/ngx_stream_lua_api.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_misc.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_initby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_initworkerby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_socket_tcp.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_socket_udp.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_args.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_ssl.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_balancer.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_logby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_prereadby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_semaphore.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_ssl_certby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_log_ringbuf.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_input_filters.h                                                                                   /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_amf.h                               /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_bandwidth.h                         /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_cmd_module.h                        /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_codec_module.h                      /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_eval.h                              /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp.h                                   /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_version.h                           /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_live_module.h                       /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_netcall_module.h                    /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_play_module.h                       /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_record_module.h                     /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_relay_module.h                      /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_streams.h                           /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_bitop.h                             /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_proxy_protocol.h                    /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/hls/ngx_rtmp_mpegts.h                        /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/dash/ngx_rtmp_mp4.h                                             /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module.h                              /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_variables.h                           /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_string.h                              /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_shm.h                                 /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_node.h                                /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_filter.h                              /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_control.h                             /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_limit.h                               /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display.h                             /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_json.h                        /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_prometheus.h                  /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_set.h                                 /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_dump.h                                /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module_html.h                          $(HTTP_DEPS) $(STREAM_DEPS)
+ADDON_DEPS = $(CORE_DEPS)  ../ngx_devel_kit-0.3.1/src/ndk.h                                                                          ../echo-nginx-module-0.62/src/ddebug.h                                                 ../echo-nginx-module-0.62/src/ngx_http_echo_module.h                                   ../echo-nginx-module-0.62/src/ngx_http_echo_handler.h                                  ../echo-nginx-module-0.62/src/ngx_http_echo_util.h                                     ../echo-nginx-module-0.62/src/ngx_http_echo_sleep.h                                    ../echo-nginx-module-0.62/src/ngx_http_echo_filter.h                                   ../echo-nginx-module-0.62/src/ngx_http_echo_var.h                                      ../echo-nginx-module-0.62/src/ngx_http_echo_location.h                                 ../echo-nginx-module-0.62/src/ngx_http_echo_echo.h                                     ../echo-nginx-module-0.62/src/ngx_http_echo_request_info.h                             ../echo-nginx-module-0.62/src/ngx_http_echo_subrequest.h                               ../echo-nginx-module-0.62/src/ngx_http_echo_foreach.h                                   ../xss-nginx-module-0.06/src/ddebug.h ../xss-nginx-module-0.06/src/ngx_http_xss_filter_module.h ../xss-nginx-module-0.06/src/ngx_http_xss_util.h ../ngx_coolkit-0.2/src/ngx_coolkit_handlers.h ../ngx_coolkit-0.2/src/ngx_coolkit_module.h ../ngx_coolkit-0.2/src/ngx_coolkit_variables.h                                                                          ../set-misc-nginx-module-0.32/src/ddebug.h                                                 ../set-misc-nginx-module-0.32/src/ngx_http_set_default_value.h                             ../set-misc-nginx-module-0.32/src/ngx_http_set_hashed_upstream.h                           ../set-misc-nginx-module-0.32/src/ngx_http_set_quote_sql.h                                 ../set-misc-nginx-module-0.32/src/ngx_http_set_quote_json.h                                ../set-misc-nginx-module-0.32/src/ngx_http_set_unescape_uri.h                              ../set-misc-nginx-module-0.32/src/ngx_http_set_escape_uri.h                                ../set-misc-nginx-module-0.32/src/ngx_http_set_hash.h                                      ../set-misc-nginx-module-0.32/src/ngx_http_set_local_today.h                               ../set-misc-nginx-module-0.32/src/ngx_http_set_hex.h                                       ../set-misc-nginx-module-0.32/src/ngx_http_set_base64.h                                    ../set-misc-nginx-module-0.32/src/ngx_http_set_random.h                                    ../set-misc-nginx-module-0.32/src/ngx_http_set_rotate.h                                    ../set-misc-nginx-module-0.32/src/ngx_http_set_secure_random.h                             ../set-misc-nginx-module-0.32/src/ngx_http_set_misc_module.h                                ../set-misc-nginx-module-0.32/src/ngx_http_set_hmac.h ../form-input-nginx-module-0.12/src/ddebug.h                                                                    ../encrypted-session-nginx-module-0.08/src/ddebug.h                                                 ../encrypted-session-nginx-module-0.08/src/ngx_http_encrypted_session_cipher.h                                                                                                 ../srcache-nginx-module-0.32/src/ddebug.h                                                 ../srcache-nginx-module-0.32/src/ngx_http_srcache_filter_module.h                         ../srcache-nginx-module-0.32/src/ngx_http_srcache_util.h                                  ../srcache-nginx-module-0.32/src/ngx_http_srcache_var.h                                   ../srcache-nginx-module-0.32/src/ngx_http_srcache_fetch.h                                 ../srcache-nginx-module-0.32/src/ngx_http_srcache_store.h                                 ../srcache-nginx-module-0.32/src/ngx_http_srcache_headers.h                                             ../ngx_lua-0.10.20/src/ddebug.h             ../ngx_lua-0.10.20/src/ngx_http_lua_autoconf.h             ../ngx_lua-0.10.20/src/ngx_http_lua_script.h             ../ngx_lua-0.10.20/src/ngx_http_lua_log.h             ../ngx_lua-0.10.20/src/ngx_http_lua_subrequest.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ndk.h             ../ngx_lua-0.10.20/src/ngx_http_lua_control.h             ../ngx_lua-0.10.20/src/ngx_http_lua_string.h             ../ngx_lua-0.10.20/src/ngx_http_lua_misc.h             ../ngx_lua-0.10.20/src/ngx_http_lua_output.h             ../ngx_lua-0.10.20/src/ngx_http_lua_headers.h             ../ngx_lua-0.10.20/src/ngx_http_lua_uri.h             ../ngx_lua-0.10.20/src/ngx_http_lua_req_body.h             ../ngx_lua-0.10.20/src/ngx_http_lua_args.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ctx.h             ../ngx_lua-0.10.20/src/ngx_http_lua_common.h             ../ngx_lua-0.10.20/src/ngx_http_lua_directive.h             ../ngx_lua-0.10.20/src/ngx_http_lua_headers_out.h             ../ngx_lua-0.10.20/src/ngx_http_lua_headers_in.h             ../ngx_lua-0.10.20/src/ngx_http_lua_consts.h             ../ngx_lua-0.10.20/src/ngx_http_lua_exception.h             ../ngx_lua-0.10.20/src/ngx_http_lua_util.h             ../ngx_lua-0.10.20/src/ngx_http_lua_cache.h             ../ngx_lua-0.10.20/src/ngx_http_lua_contentby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_rewriteby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_accessby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_setby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_capturefilter.h             ../ngx_lua-0.10.20/src/ngx_http_lua_clfactory.h             ../ngx_lua-0.10.20/src/ngx_http_lua_pcrefix.h             ../ngx_lua-0.10.20/src/ngx_http_lua_headerfilterby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_shdict.h             ../ngx_lua-0.10.20/src/ngx_http_lua_socket_tcp.h             ../ngx_lua-0.10.20/src/api/ngx_http_lua_api.h             ../ngx_lua-0.10.20/src/ngx_http_lua_logby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_sleep.h             ../ngx_lua-0.10.20/src/ngx_http_lua_semaphore.h            ../ngx_lua-0.10.20/src/ngx_http_lua_coroutine.h             ../ngx_lua-0.10.20/src/ngx_http_lua_bodyfilterby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_initby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_initworkerby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_exitworkerby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_socket_udp.h             ../ngx_lua-0.10.20/src/ngx_http_lua_probe.h             ../ngx_lua-0.10.20/src/ngx_http_lua_uthread.h             ../ngx_lua-0.10.20/src/ngx_http_lua_timer.h             ../ngx_lua-0.10.20/src/ngx_http_lua_config.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ssl_certby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_lex.h             ../ngx_lua-0.10.20/src/ngx_http_lua_balancer.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ssl_session_storeby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ssl_session_fetchby.h             ../ngx_lua-0.10.20/src/ngx_http_lua_ssl.h             ../ngx_lua-0.10.20/src/ngx_http_lua_log_ringbuf.h             ../ngx_lua-0.10.20/src/ngx_http_lua_input_filters.h             ../ngx_lua-0.10.20/src/ngx_http_lua_pipe.h                                                                                       ../headers-more-nginx-module-0.33/src/ddebug.h                                                 ../headers-more-nginx-module-0.33/src/ngx_http_headers_more_filter_module.h                    ../headers-more-nginx-module-0.33/src/ngx_http_headers_more_headers_in.h                       ../headers-more-nginx-module-0.33/src/ngx_http_headers_more_headers_out.h                      ../headers-more-nginx-module-0.33/src/ngx_http_headers_more_headers_in.h                       ../headers-more-nginx-module-0.33/src/ngx_http_headers_more_util.h                                                                                                         ../array-var-nginx-module-0.05/src/ddebug.h                                                 ../array-var-nginx-module-0.05/src/ngx_http_array_var_util.h                                                                                                          ../memc-nginx-module-0.19/src/ddebug.h                                                 ../memc-nginx-module-0.19/src/ngx_http_memc_module.h                                   ../memc-nginx-module-0.19/src/ngx_http_memc_request.h                                  ../memc-nginx-module-0.19/src/ngx_http_memc_response.h                                 ../memc-nginx-module-0.19/src/ngx_http_memc_util.h                                     ../memc-nginx-module-0.19/src/ngx_http_memc_handler.h                                                                                                              ../redis2-nginx-module-0.15/src/ddebug.h                                                 ../redis2-nginx-module-0.15/src/ngx_http_redis2_module.h                                 ../redis2-nginx-module-0.15/src/ngx_http_redis2_handler.h                                ../redis2-nginx-module-0.15/src/ngx_http_redis2_reply.h                                  ../redis2-nginx-module-0.15/src/ngx_http_redis2_util.h                                    ../rds-json-nginx-module-0.15/src/ddebug.h ../rds-json-nginx-module-0.15/src/resty_dbd_stream.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_json_filter_module.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_json_processor.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_json_util.h ../rds-json-nginx-module-0.15/src/ngx_http_rds.h ../rds-json-nginx-module-0.15/src/resty_dbd_stream.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_json_output.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_utils.h ../rds-json-nginx-module-0.15/src/ngx_http_rds_json_handler.h ../rds-csv-nginx-module-0.09/src/ddebug.h ../rds-csv-nginx-module-0.09/src/resty_dbd_stream.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds_csv_filter_module.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds_csv_processor.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds_csv_util.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds.h ../rds-csv-nginx-module-0.09/src/resty_dbd_stream.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds_csv_output.h ../rds-csv-nginx-module-0.09/src/ngx_http_rds_utils.h                  ../ngx_stream_lua-0.0.10/src/ddebug.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_autoconf.h                 ../ngx_stream_lua-0.0.10/src/api/ngx_stream_lua_api.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_request.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_common.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_lex.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_contentby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_util.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_cache.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_clfactory.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_pcrefix.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_uthread.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_coroutine.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_output.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_consts.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_log.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_string.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_control.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_sleep.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_phase.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_ctx.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_script.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_shdict.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_timer.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_config.h                 ../ngx_stream_lua-0.0.10/src/api/ngx_stream_lua_api.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_misc.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_initby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_initworkerby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_socket_tcp.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_socket_udp.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_args.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_ssl.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_balancer.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_logby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_prereadby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_semaphore.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_ssl_certby.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_log_ringbuf.h                 ../ngx_stream_lua-0.0.10/src/ngx_stream_lua_input_filters.h                                    /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module.h                              /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_variables.h                           /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_string.h                              /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_shm.h                                 /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_node.h                                /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_filter.h                              /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_control.h                             /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_limit.h                               /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display.h                             /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_json.h                        /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_prometheus.h                  /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_set.h                                 /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_dump.h                                /home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module_html.h                                            /home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_module.h                              /home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_string.h                              /home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_shm.h                                 /home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_node.h                                /home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_filter.h                              /home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_control.h                             /home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_display.h                             /home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_display_json.h                        /home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_display_prometheus.h                  /home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_module_html.h                                            /home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_module.h                       /home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_string.h                       /home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_shm.h                          /home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_node.h                         /home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_filter.h                       /home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_limit.h                        /home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_variables.h                                                                                      /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_amf.h                               /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_bandwidth.h                         /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_cmd_module.h                        /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_codec_module.h                      /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_eval.h                              /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp.h                                   /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_version.h                           /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_live_module.h                       /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_netcall_module.h                    /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_play_module.h                       /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_record_module.h                     /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_relay_module.h                      /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_streams.h                           /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_bitop.h                             /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_proxy_protocol.h                    /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/hls/ngx_rtmp_mpegts.h                        /home/chezi/resty_code/code/TOOL/nginx-rtmp-module/dash/ngx_rtmp_mp4.h                           $(HTTP_DEPS) $(STREAM_DEPS)
 
 
 build:	binary modules manpage
@@ -467,6 +467,35 @@ objs/nginx:	objs/src/core/nginx.o \
 	objs/addon/src/ngx_stream_lua_ssl_certby.o \
 	objs/addon/src/ngx_stream_lua_log_ringbuf.o \
 	objs/addon/src/ngx_stream_lua_input_filters.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_module.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_variables.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_string.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_shm.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_node.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_filter.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_control.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_limit.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display_json.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_set.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_dump.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_module.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_string.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_shm.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_node.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_filter.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_control.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_display.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_display_json.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_display_prometheus.o \
+	objs/addon/src/ngx_stream_server_traffic_status_module.o \
+	objs/addon/src/ngx_stream_server_traffic_status_string.o \
+	objs/addon/src/ngx_stream_server_traffic_status_shm.o \
+	objs/addon/src/ngx_stream_server_traffic_status_node.o \
+	objs/addon/src/ngx_stream_server_traffic_status_filter.o \
+	objs/addon/src/ngx_stream_server_traffic_status_limit.o \
+	objs/addon/src/ngx_stream_server_traffic_status_variables.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_init.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_handshake.o \
@@ -501,19 +530,6 @@ objs/nginx:	objs/src/core/nginx.o \
 	objs/addon/dash/ngx_rtmp_mp4.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_stat_module.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_control_module.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_module.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_variables.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_string.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_shm.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_node.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_filter.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_control.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_limit.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_display.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_display_json.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_set.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_dump.o \
 	objs/ngx_modules.o
 
 	$(LINK) -o objs/nginx \
@@ -838,6 +854,35 @@ objs/nginx:	objs/src/core/nginx.o \
 	objs/addon/src/ngx_stream_lua_ssl_certby.o \
 	objs/addon/src/ngx_stream_lua_log_ringbuf.o \
 	objs/addon/src/ngx_stream_lua_input_filters.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_module.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_variables.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_string.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_shm.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_node.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_filter.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_control.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_limit.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display_json.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_set.o \
+	objs/addon/src/ngx_http_vhost_traffic_status_dump.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_module.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_string.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_shm.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_node.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_filter.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_control.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_display.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_display_json.o \
+	objs/addon/src/ngx_http_stream_server_traffic_status_display_prometheus.o \
+	objs/addon/src/ngx_stream_server_traffic_status_module.o \
+	objs/addon/src/ngx_stream_server_traffic_status_string.o \
+	objs/addon/src/ngx_stream_server_traffic_status_shm.o \
+	objs/addon/src/ngx_stream_server_traffic_status_node.o \
+	objs/addon/src/ngx_stream_server_traffic_status_filter.o \
+	objs/addon/src/ngx_stream_server_traffic_status_limit.o \
+	objs/addon/src/ngx_stream_server_traffic_status_variables.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_init.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_handshake.o \
@@ -872,19 +917,6 @@ objs/nginx:	objs/src/core/nginx.o \
 	objs/addon/dash/ngx_rtmp_mp4.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_stat_module.o \
 	objs/addon/nginx-rtmp-module/ngx_rtmp_control_module.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_module.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_variables.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_string.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_shm.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_node.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_filter.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_control.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_limit.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_display.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_display_json.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_set.o \
-	objs/addon/src/ngx_http_vhost_traffic_status_dump.o \
 	objs/ngx_modules.o \
 	-L/home/chezi/resty_code/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/lib -L/home/chezi/resty_code/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/lib -Wl,-rpath,/usr/local/src/openresty/luajit/lib -Wl,--require-defined=pcre_version -Wl,-E -Wl,-E -lcrypt -L/home/chezi/resty_code/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/lib -lluajit-5.1 -lm -ldl -L/home/chezi/resty_code/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/lib -lluajit-5.1 -lm -ldl -lpcre /home/chezi/resty_code/code/TOOL/openssl-1.1.1t/.openssl/lib/libssl.a /home/chezi/resty_code/code/TOOL/openssl-1.1.1t/.openssl/lib/libcrypto.a -lz \
 	-Wl,-E
@@ -3147,6 +3179,209 @@ objs/addon/src/ngx_stream_lua_input_filters.o:	$(ADDON_DEPS) \
 		../ngx_stream_lua-0.0.10/src/ngx_stream_lua_input_filters.c
 
 
+objs/addon/src/ngx_http_vhost_traffic_status_module.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_module.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_variables.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_variables.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_variables.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_variables.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_string.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_string.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_string.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_string.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_shm.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_shm.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_shm.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_shm.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_node.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_node.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_node.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_node.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_filter.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_filter.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_filter.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_filter.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_control.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_control.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_control.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_control.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_limit.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_limit.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_limit.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_limit.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_display.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_display.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_display_json.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_json.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_display_json.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_json.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_prometheus.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_prometheus.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_set.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_set.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_set.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_set.c
+
+
+objs/addon/src/ngx_http_vhost_traffic_status_dump.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_dump.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_vhost_traffic_status_dump.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_dump.c
+
+
+objs/addon/src/ngx_http_stream_server_traffic_status_module.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_module.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_stream_server_traffic_status_module.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_module.c
+
+
+objs/addon/src/ngx_http_stream_server_traffic_status_string.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_string.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_stream_server_traffic_status_string.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_string.c
+
+
+objs/addon/src/ngx_http_stream_server_traffic_status_shm.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_shm.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_stream_server_traffic_status_shm.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_shm.c
+
+
+objs/addon/src/ngx_http_stream_server_traffic_status_node.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_node.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_stream_server_traffic_status_node.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_node.c
+
+
+objs/addon/src/ngx_http_stream_server_traffic_status_filter.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_filter.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_stream_server_traffic_status_filter.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_filter.c
+
+
+objs/addon/src/ngx_http_stream_server_traffic_status_control.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_control.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_stream_server_traffic_status_control.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_control.c
+
+
+objs/addon/src/ngx_http_stream_server_traffic_status_display.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_display.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_stream_server_traffic_status_display.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_display.c
+
+
+objs/addon/src/ngx_http_stream_server_traffic_status_display_json.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_display_json.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_stream_server_traffic_status_display_json.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_display_json.c
+
+
+objs/addon/src/ngx_http_stream_server_traffic_status_display_prometheus.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_display_prometheus.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_http_stream_server_traffic_status_display_prometheus.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-sts/src/ngx_http_stream_server_traffic_status_display_prometheus.c
+
+
+objs/addon/src/ngx_stream_server_traffic_status_module.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_module.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_stream_server_traffic_status_module.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_module.c
+
+
+objs/addon/src/ngx_stream_server_traffic_status_string.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_string.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_stream_server_traffic_status_string.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_string.c
+
+
+objs/addon/src/ngx_stream_server_traffic_status_shm.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_shm.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_stream_server_traffic_status_shm.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_shm.c
+
+
+objs/addon/src/ngx_stream_server_traffic_status_node.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_node.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_stream_server_traffic_status_node.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_node.c
+
+
+objs/addon/src/ngx_stream_server_traffic_status_filter.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_filter.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_stream_server_traffic_status_filter.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_filter.c
+
+
+objs/addon/src/ngx_stream_server_traffic_status_limit.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_limit.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_stream_server_traffic_status_limit.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_limit.c
+
+
+objs/addon/src/ngx_stream_server_traffic_status_variables.o:	$(ADDON_DEPS) \
+	/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_variables.c
+	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
+		-o objs/addon/src/ngx_stream_server_traffic_status_variables.o \
+		/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts/src/ngx_stream_server_traffic_status_variables.c
+
+
 objs/addon/nginx-rtmp-module/ngx_rtmp.o:	$(ADDON_DEPS) \
 	/home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp.c
 	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
@@ -3383,97 +3618,6 @@ objs/addon/nginx-rtmp-module/ngx_rtmp_control_module.o:	$(ADDON_DEPS) \
 	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
 		-o objs/addon/nginx-rtmp-module/ngx_rtmp_control_module.o \
 		/home/chezi/resty_code/code/TOOL/nginx-rtmp-module/ngx_rtmp_control_module.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_module.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_module.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_module.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_variables.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_variables.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_variables.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_variables.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_string.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_string.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_string.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_string.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_shm.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_shm.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_shm.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_shm.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_node.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_node.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_node.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_node.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_filter.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_filter.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_filter.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_filter.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_control.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_control.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_control.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_control.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_limit.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_limit.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_limit.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_limit.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_display.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_display.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_display_json.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_json.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_display_json.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_json.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_prometheus.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_display_prometheus.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_display_prometheus.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_set.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_set.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_set.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_set.c
-
-
-objs/addon/src/ngx_http_vhost_traffic_status_dump.o:	$(ADDON_DEPS) \
-	/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_dump.c
-	$(CC) -c $(CFLAGS)  $(ALL_INCS) \
-		-o objs/addon/src/ngx_http_vhost_traffic_status_dump.o \
-		/home/chezi/resty_code/code/TOOL/nginx-module-vts/src/ngx_http_vhost_traffic_status_dump.c
 
 
 /home/chezi/resty_code/code/TOOL/openssl-1.1.1t/.openssl/include/openssl/ssl.h:	objs/Makefile

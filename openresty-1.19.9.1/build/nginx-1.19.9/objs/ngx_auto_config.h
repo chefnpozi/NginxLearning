@@ -1,4 +1,4 @@
-#define NGX_CONFIGURE " --prefix=/usr/local/src/openresty/nginx --with-debug --with-cc-opt='-DNGX_LUA_USE_ASSERT -DNGX_LUA_ABORT_AT_PANIC -O2 -Werror -W -O0' --add-module=../ngx_devel_kit-0.3.1 --add-module=../echo-nginx-module-0.62 --add-module=../xss-nginx-module-0.06 --add-module=../ngx_coolkit-0.2 --add-module=../set-misc-nginx-module-0.32 --add-module=../form-input-nginx-module-0.12 --add-module=../encrypted-session-nginx-module-0.08 --add-module=../srcache-nginx-module-0.32 --add-module=../ngx_lua-0.10.20 --add-module=../ngx_lua_upstream-0.07 --add-module=../headers-more-nginx-module-0.33 --add-module=../array-var-nginx-module-0.05 --add-module=../memc-nginx-module-0.19 --add-module=../redis2-nginx-module-0.15 --add-module=../redis-nginx-module-0.3.7 --add-module=../rds-json-nginx-module-0.15 --add-module=../rds-csv-nginx-module-0.09 --add-module=../ngx_stream_lua-0.0.10 --with-ld-opt=-Wl,-rpath,/usr/local/src/openresty/luajit/lib --with-http_stub_status_module --with-http_gzip_static_module --with-http_realip_module --with-http_sub_module --with-http_ssl_module --with-http_ssl_module --with-pcre-jit --with-openssl=/home/chezi/resty_code/code/TOOL/openssl-1.1.1t --add-module=/home/chezi/resty_code/code/TOOL/nginx-rtmp-module --add-module=/home/chezi/resty_code/code/TOOL/nginx-module-vts --with-openssl-opt=-g --with-stream --with-stream_ssl_module --with-stream_ssl_preread_module"
+#define NGX_CONFIGURE " --prefix=/usr/local/src/openresty/nginx --with-debug --with-cc-opt='-DNGX_LUA_USE_ASSERT -DNGX_LUA_ABORT_AT_PANIC -O2 -Werror -W -O0' --add-module=../ngx_devel_kit-0.3.1 --add-module=../echo-nginx-module-0.62 --add-module=../xss-nginx-module-0.06 --add-module=../ngx_coolkit-0.2 --add-module=../set-misc-nginx-module-0.32 --add-module=../form-input-nginx-module-0.12 --add-module=../encrypted-session-nginx-module-0.08 --add-module=../srcache-nginx-module-0.32 --add-module=../ngx_lua-0.10.20 --add-module=../ngx_lua_upstream-0.07 --add-module=../headers-more-nginx-module-0.33 --add-module=../array-var-nginx-module-0.05 --add-module=../memc-nginx-module-0.19 --add-module=../redis2-nginx-module-0.15 --add-module=../redis-nginx-module-0.3.7 --add-module=../rds-json-nginx-module-0.15 --add-module=../rds-csv-nginx-module-0.09 --add-module=../ngx_stream_lua-0.0.10 --with-ld-opt=-Wl,-rpath,/usr/local/src/openresty/luajit/lib --with-http_stub_status_module --with-http_gzip_static_module --with-http_realip_module --with-http_sub_module --with-http_ssl_module --with-http_ssl_module --with-pcre-jit --with-stream --with-openssl=/home/chezi/resty_code/code/TOOL/openssl-1.1.1t --add-module=/home/chezi/resty_code/code/TOOL/nginx-module-vts --add-module=/home/chezi/resty_code/code/TOOL/nginx-module-sts --add-module=/home/chezi/resty_code/code/TOOL/nginx-module-stream-sts --add-module=/home/chezi/resty_code/code/TOOL/nginx-rtmp-module --with-openssl-opt=-g --with-stream --with-stream_ssl_module --with-stream_ssl_preread_module"
 
 #ifndef NGX_DEBUG
 #define NGX_DEBUG  1
@@ -465,6 +465,11 @@
 
 #ifndef NGX_STREAM_LUA_HAVE_SO_PASSCRED
 #define NGX_STREAM_LUA_HAVE_SO_PASSCRED  1
+#endif
+
+
+#ifndef NGX_STAT_STUB
+#define NGX_STAT_STUB  1
 #endif
 
 
