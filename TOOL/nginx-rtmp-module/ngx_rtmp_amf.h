@@ -37,11 +37,15 @@
 #define NGX_RTMP_AMF_VARIANT            (NGX_RTMP_AMF_VARIANT_\
                                         |NGX_RTMP_AMF_TYPELESS)
 
-
+// 接收或发送给客户端的 AMF 数据都是以该结构体的形式组织的。
 typedef struct {
+    /* 指定要获取的 amf 数据类型 */
     ngx_int_t                           type;
+    /* 指定获取的 amf 名称 */
     ngx_str_t                           name;
+    /* 将获取到的数据保存到该指针指向的内存中 */
     void                               *data;
+    /* data 指向的内存的容量 */
     size_t                              len;
 } ngx_rtmp_amf_elt_t;
 
@@ -50,7 +54,9 @@ typedef ngx_chain_t * (*ngx_rtmp_amf_alloc_pt)(void *arg);
 
 
 typedef struct {
+    /* link 指向保存着接收到的数据的 ngx_chain_t 类型的结构体 in 首地址 */
     ngx_chain_t                        *link, *first;
+    /* 数据的偏移值 */
     size_t                              offset;
     ngx_rtmp_amf_alloc_pt               alloc;
     void                               *arg;

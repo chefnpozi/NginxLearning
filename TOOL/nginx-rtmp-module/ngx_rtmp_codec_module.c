@@ -246,12 +246,12 @@ ngx_rtmp_codec_av(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
     if (h->type == NGX_RTMP_MSG_AUDIO) {
         if (ctx->audio_codec_id == NGX_RTMP_AUDIO_AAC) {
             header = &ctx->aac_header;
-            ngx_rtmp_codec_parse_aac_header(s, in);
+            ngx_rtmp_codec_parse_aac_header(s, in); // 
         }
     } else {
         if (ctx->video_codec_id == NGX_RTMP_VIDEO_H264) {
             header = &ctx->avc_header;
-            ngx_rtmp_codec_parse_avc_header(s, in);
+            ngx_rtmp_codec_parse_avc_header(s, in); //
         }
     }
 

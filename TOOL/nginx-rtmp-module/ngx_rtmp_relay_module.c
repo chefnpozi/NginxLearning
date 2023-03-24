@@ -1301,7 +1301,7 @@ static ngx_int_t
 ngx_rtmp_relay_on_status(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
         ngx_chain_t *in)
 {
-    // 客户端接收到服务器发送的对 publish 的响应。表示客户端可以向服务器发布流了
+    // onStatus 客户端接收到服务器发送的对 publish 的响应。表示客户端可以向服务器发布流了
     ngx_rtmp_relay_ctx_t       *ctx;
     static struct {
         double                  trans;

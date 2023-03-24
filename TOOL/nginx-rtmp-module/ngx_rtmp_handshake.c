@@ -627,7 +627,9 @@ ngx_rtmp_client_handshake(ngx_rtmp_session_t *s, unsigned async)
     /* 有前面的调用传入的参数可知，该值为 1，即为异步，因此这里暂时不向上游服务器发送 handshake，
      * 而是将其写事件添加到定时器和 epoll 中，等待下次循环监控到该写事件可写时才发送 C0 + C1 */
     if (async) {
+        /* 将该写事件添加到定时器中，超时时间为 s->timeout */
         ngx_add_timer(c->write, s->timeout);
+        /* 将该写事件添加到 epoll 等事件监控机制中 */
         if (ngx_handle_write_event(c->write, 0) != NGX_OK) {
             ngx_rtmp_finalize_session(s);
         }

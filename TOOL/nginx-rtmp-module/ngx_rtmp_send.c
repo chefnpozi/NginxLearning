@@ -11,6 +11,7 @@
 #include "ngx_rtmp_streams.h"
 
 
+// 该宏主要是初始化 RTMP 消息头，并为 ngx_chain_t 结构体指针分配内存，用来存储将要发送的数据。
 #define NGX_RTMP_USER_START(s, tp)                                          \
     ngx_rtmp_header_t               __h;                                    \
     ngx_chain_t                    *__l;                                    \
@@ -19,9 +20,9 @@
                                                                             \
     __cscf = ngx_rtmp_get_module_srv_conf(                                  \
             s, ngx_rtmp_core_module);                                       \
-    memset(&__h, 0, sizeof(__h));                                           \
+    memset(&__h, 0, sizeof(__h));                       /* 初始化 RTMP 消息的头部 */                    \
     __h.type = tp;                                                          \
-    __h.csid = 2;                                                           \
+    __h.csid = 2;                                       /* csid 为 2 表明该chunk是控制信息和一些命令信息 */                    \
     __l = ngx_rtmp_alloc_shared_buf(__cscf);                                \
     if (__l == NULL) {                                                      \
         return NULL;                                                        \
@@ -160,6 +161,7 @@ ngx_rtmp_create_ack_size(ngx_rtmp_session_t *s, uint32_t ack_size)
 ngx_int_t
 ngx_rtmp_send_ack_size(ngx_rtmp_session_t *s, uint32_t ack_size)
 {
+    // 发送 ack_size 包
     return ngx_rtmp_send_shared_packet(s,
            ngx_rtmp_create_ack_size(s, ack_size));
 }

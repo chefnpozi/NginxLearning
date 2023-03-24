@@ -317,6 +317,7 @@ ngx_event_accept(ngx_event_t *ev)
         log->data = NULL;
         log->handler = NULL;
 
+        /* 调用该监听端口对应的回调函数，对于 rtmp 模块，则固定为 ngx_rtmp_init_connection */
         ls->handler(c);
 
         if (ngx_event_flags & NGX_USE_KQUEUE_EVENT) {

@@ -371,7 +371,7 @@ ngx_rtmp_cmd_create_stream_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 static ngx_int_t
 ngx_rtmp_cmd_create_stream(ngx_rtmp_session_t *s, ngx_rtmp_create_stream_t *v)
 {
-    // 该函数主要是 发送对于 createStream 的响应
+    // 该函数主要是 构建 发送对于 createStream 的响应
     /* support one message stream per connection */
     static double               stream;
     static double               trans;
@@ -404,6 +404,7 @@ ngx_rtmp_cmd_create_stream(ngx_rtmp_session_t *s, ngx_rtmp_create_stream_t *v)
     h.csid = NGX_RTMP_CSID_AMF_INI;
     h.type = NGX_RTMP_MSG_AMF_CMD;
     // 发送对于 createStream 的响应
+    // 客户端会接收到服务器对 createStream 的响应包：_result() 会调用ngx_rtmp_relay_on_result
     return ngx_rtmp_send_amf(s, &h, out_elts,
                              sizeof(out_elts) / sizeof(out_elts[0])) == NGX_OK ?
            NGX_DONE : NGX_ERROR;

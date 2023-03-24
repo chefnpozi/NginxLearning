@@ -20,6 +20,7 @@ ngx_rtmp_amf_reverse_copy(void *dst, void* src, size_t len)
         return NULL;
     }
 
+    /* 将 src 中的数据从末尾开始一个个赋给 dst[0],dst[1],dst[2],... */
     for(k = 0; k < len; ++k) {
         ((u_char*)dst)[k] = ((u_char*)src)[len - 1 - k];
     }
@@ -63,6 +64,10 @@ ngx_rtmp_amf_debug(const char* op, ngx_log_t *log, u_char *p, size_t n)
 }
 #endif
 
+/* @ctx：指向 ngx_rtmp_amf_ctx_t 类型的指针，该结构体的成员 link 保存着接收到的 amf 数据
+ * @p：将读取到的数据保存到该指针 p 指向的内存
+ * @n：要读取的字节数
+ */
 static ngx_int_t
 ngx_rtmp_amf_get(ngx_rtmp_amf_ctx_t *ctx, void *p, size_t n)
 {
@@ -80,13 +85,18 @@ ngx_rtmp_amf_get(ngx_rtmp_amf_ctx_t *ctx, void *p, size_t n)
 
     for(l = ctx->link, offset = ctx->offset; l; l = l->next, offset = 0) {
 
+        /* 开始 pos 指向所要读取数据的起始地址 */
         pos  = l->buf->pos + offset;
+        /* last 指向数据的末尾地址 */
         last = l->buf->last;
 
+        /* 当数据充足时 */
         if (last >= pos + n) {
             if (p) {
+                /* 拷贝 n 个字节的数据到 p 指向的内存中 */
                 p = ngx_cpymem(p, pos, n);
             }
+            /* ctx->offset 的偏移值加 n，表示已经读出了 n 个字节的数据 */
             ctx->offset = offset + n;
             ctx->link = l;
 
@@ -97,12 +107,14 @@ ngx_rtmp_amf_get(ngx_rtmp_amf_ctx_t *ctx, void *p, size_t n)
             return NGX_OK;
         }
 
+        /* 当 ctx->link 指向的 ngx_chain_t 链表保存的数据不足 n 个时，则将能读取出的数据都读取出来 */
         size = last - pos;
 
         if (p) {
             p = ngx_cpymem(p, pos, size);
         }
 
+        /* 计算余下未读的字节数，跳到下一个链表继续读取，直到读够为止 */
         n -= size;
     }
 
@@ -155,11 +167,14 @@ ngx_rtmp_amf_put(ngx_rtmp_amf_ctx_t *ctx, void *p, size_t n)
 
         size = b->end - b->last;
 
+        /* 若要写入的缓存空间足够，则直接将其cp */
         if (size >= n) {
             b->last = ngx_cpymem(b->last, p, n);
             return NGX_OK;
         }
 
+        /* 否则，若内存不足，则只写入 size 字节的数组，
+         * 余下的写入下一个 ngx_chain_t 中(存在的话) */
         b->last = ngx_cpymem(b->last, p, size);
         p = (u_char*)p + size;
         n -= size;
@@ -321,11 +336,13 @@ ngx_rtmp_amf_read(ngx_rtmp_amf_ctx_t *ctx, ngx_rtmp_amf_elt_t *elts,
 
     for(n = 0; n < nelts; ++n) {
 
+        /* 一般 amf 命令名通常伴随着字符串类型，但是 shared object 名是没有类型的 */
         if (elts && elts->type & NGX_RTMP_AMF_TYPELESS) {
             type = elts->type & ~NGX_RTMP_AMF_TYPELESS;
             data = elts->data;
 
         } else {
+            /* 读取 1 个字节的数据到 type8 中 */
             switch (ngx_rtmp_amf_get(ctx, &type8, 1)) {
                 case NGX_DONE:
                     if (elts && elts->type & NGX_RTMP_AMF_OPTIONAL) {
@@ -337,6 +354,8 @@ ngx_rtmp_amf_read(ngx_rtmp_amf_ctx_t *ctx, ngx_rtmp_amf_elt_t *elts,
             }
             type = type8;
             data = (elts &&
+                    /* 检测 elts->type 的类型 与 读取出的类型 type 是否相同，是则 
+                     * data 指向 elts->data，否则为 NULL */
                     ngx_rtmp_amf_is_compatible_type(
                                  (uint8_t) (elts->type & 0xff), (uint8_t) type))
                 ? elts->data
@@ -350,6 +369,7 @@ ngx_rtmp_amf_read(ngx_rtmp_amf_ctx_t *ctx, ngx_rtmp_amf_elt_t *elts,
             }
         }
 
+        /* 根据类型 type 取出对应的数据 */
         switch (type) {
             case NGX_RTMP_AMF_NUMBER:
                 if (ngx_rtmp_amf_get(ctx, buf, 8) != NGX_OK) {
@@ -365,9 +385,11 @@ ngx_rtmp_amf_read(ngx_rtmp_amf_ctx_t *ctx, ngx_rtmp_amf_elt_t *elts,
                 break;
 
             case NGX_RTMP_AMF_STRING:
+                /* 读取 2 字节的 length，保存到 buf 中 */
                 if (ngx_rtmp_amf_get(ctx, buf, 2) != NGX_OK) {
                     return NGX_ERROR;
                 }
+                /* 将 buf 中保存的大端字节序转换为小端字节序，保存到 len 中 */
                 ngx_rtmp_amf_reverse_copy(&len, buf, 2);
 
                 if (data == NULL) {
@@ -381,6 +403,7 @@ ngx_rtmp_amf_read(ngx_rtmp_amf_ctx_t *ctx, ngx_rtmp_amf_elt_t *elts,
                     rc = ngx_rtmp_amf_get(ctx, NULL, len - elts->len + 1);
 
                 } else {
+                    /* 读取该 amf 字符串的真正的字符串数据到 data 中 */
                     rc = ngx_rtmp_amf_get(ctx, data, len);
                     ((char*)data)[len] = 0;
                 }
@@ -456,6 +479,7 @@ ngx_rtmp_amf_read(ngx_rtmp_amf_ctx_t *ctx, ngx_rtmp_amf_elt_t *elts,
         }
 
         if (elts) {
+            /* 若 elts 数组中的当前元素获取成功，则接着获取下一个 elts 元素要获取的值 */
             ++elts;
         }
     }
@@ -476,6 +500,7 @@ ngx_rtmp_amf_write_object(ngx_rtmp_amf_ctx_t *ctx,
 
         len = (uint16_t) elts[n].name.len;
 
+        /* 先写入 2 bytes 长度值 */
         if (ngx_rtmp_amf_put(ctx,
                     ngx_rtmp_amf_reverse_copy(buf,
                         &len, 2), 2) != NGX_OK)
@@ -483,15 +508,18 @@ ngx_rtmp_amf_write_object(ngx_rtmp_amf_ctx_t *ctx,
             return NGX_ERROR;
         }
 
+        /* 接着将 len bytes 的 名称写入*/
         if (ngx_rtmp_amf_put(ctx, elts[n].name.data, len) != NGX_OK) {
             return NGX_ERROR;
         }
 
+        /* 接着写入上面 elts[n].name 的值 */
         if (ngx_rtmp_amf_write(ctx, &elts[n], 1) != NGX_OK) {
             return NGX_ERROR;
         }
     }
 
+    /* 该 object 的项都写入完成后，最后写入 2 bytes 的 '\0' */
     if (ngx_rtmp_amf_put(ctx, "\0\0", 2) != NGX_OK) {
         return NGX_ERROR;
     }
@@ -544,10 +572,13 @@ ngx_rtmp_amf_write(ngx_rtmp_amf_ctx_t *ctx,
         data = elts[n].data;
         len  = (uint16_t) elts[n].len;
 
+        /* 如果该 amf 为 shared 类型，则表示没有该 amf 数据
+         * 不是 "类型+值" 的形式，即直接是 "值" */
         if (type & NGX_RTMP_AMF_TYPELESS) {
             type &= ~NGX_RTMP_AMF_TYPELESS;
         } else {
             type8 = (uint8_t)type;
+            /* 先写入 1 byte 的类型 */
             if (ngx_rtmp_amf_put(ctx, &type8, 1) != NGX_OK)
                 return NGX_ERROR;
         }
@@ -573,6 +604,7 @@ ngx_rtmp_amf_write(ngx_rtmp_amf_ctx_t *ctx,
                     len = (uint16_t) ngx_strlen((u_char*) data);
                 }
 
+                /* 写入 2 bytes 的 长度 */
                 if (ngx_rtmp_amf_put(ctx,
                             ngx_rtmp_amf_reverse_copy(buf,
                                 &len, 2), 2) != NGX_OK)
@@ -580,6 +612,7 @@ ngx_rtmp_amf_write(ngx_rtmp_amf_ctx_t *ctx,
                     return NGX_ERROR;
                 }
 
+                /* 接着写入 len 大小的字符串数据 data */
                 if (ngx_rtmp_amf_put(ctx, data, len) != NGX_OK) {
                     return NGX_ERROR;
                 }
