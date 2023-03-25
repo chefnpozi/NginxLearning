@@ -1291,6 +1291,7 @@ ngx_rtmp_notify_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
     ngx_rtmp_netcall_init_t         ci;
     ngx_url_t                      *url;
 
+    /* 检测是否置位了 auto_pushed 或者 relay，由于是点播，因此该模块相当于什么也没有做  */
     if (s->auto_pushed || s->relay) {
         goto next;
     }

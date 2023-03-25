@@ -866,6 +866,8 @@ ngx_rtmp_cmp_conf_addrs(const void *one, const void *two)
 }
 
 
+/*该函数主要是找到所有 RTMP 模块在 postconfiguration 方法中根据 evt 值保存在 events 数组中的回调函数，然后
+一一调用它们，没有找到则返回。*/
 ngx_int_t
 ngx_rtmp_fire_event(ngx_rtmp_session_t *s, ngx_uint_t evt,
         ngx_rtmp_header_t *h, ngx_chain_t *in)
@@ -875,8 +877,14 @@ ngx_rtmp_fire_event(ngx_rtmp_session_t *s, ngx_uint_t evt,
     ngx_rtmp_handler_pt            *hh;
     size_t                          n;
 
+    /* 获取 server{} 所属的 ngx_rtmp_conf_ctx_t 的 main_conf[0]，即对应的
+     * ngx_rtmp_core_module 的main级别配置结构体 */
     cmcf = ngx_rtmp_get_module_main_conf(s, ngx_rtmp_core_module);
 
+    /* 根据 evt 的值在events数组中找到对应的存储着
+     * 所有 RTMP 对这类 evt 事件的回调方法，该回调
+     * 方法一般是在每个 RTMP 模块的 postconfiguration 
+     * 方法中添加的 */
     ch = &cmcf->events[evt];
     hh = ch->elts;
     for(n = 0; n < ch->nelts; ++n, ++hh) {
@@ -885,6 +893,8 @@ ngx_rtmp_fire_event(ngx_rtmp_session_t *s, ngx_uint_t evt,
         }
     }
     return NGX_OK;
+    /*因此，在 ngx_rtmp_fire_event 方法中调用的对应 NGX_RTMP_CONNECT 事件的回调方法为
+      ngx_rtmp_limit_connect: 只有 ngx_rtmp_limit_module 模块设置有回调函数 */
 }
 
 

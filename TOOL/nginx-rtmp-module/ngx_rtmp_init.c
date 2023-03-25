@@ -32,6 +32,7 @@ ngx_rtmp_init_connection(ngx_connection_t *c)
     ngx_rtmp_in6_addr_t   *addr6;
 #endif
 
+    /* rtmp 连接的计数值加 1 */
     ++ngx_rtmp_naccepted;
 
     /* find the server configuration for the address:port */
@@ -125,6 +126,7 @@ ngx_rtmp_init_connection(ngx_connection_t *c)
     ngx_log_error(NGX_LOG_INFO, c->log, 0, "*%ui client connected '%V'",
                   c->number, &c->addr_text);
 
+    /* 创建并初始化一个 rtmp 会话 */
     s = ngx_rtmp_init_session(c, addr_conf);
     if (s == NULL) {
         return;
@@ -135,11 +137,12 @@ ngx_rtmp_init_connection(ngx_connection_t *c)
 
     s->auto_pushed = unix_socket;
 
+    /* 检测是否是开启了代理服务 */
     if (addr_conf->proxy_protocol) {
         ngx_rtmp_proxy_protocol(s);
 
     } else {
-        // 握手
+        /* 开始 rtmp 的握手过程 */
         ngx_rtmp_handshake(s);
     }
 }
@@ -152,6 +155,7 @@ ngx_rtmp_init_session(ngx_connection_t *c, ngx_rtmp_addr_conf_t *addr_conf)
     ngx_rtmp_core_srv_conf_t       *cscf;
     ngx_rtmp_error_log_ctx_t       *ctx;
 
+    /* 为该会话分配内存 */
     s = ngx_pcalloc(c->pool, sizeof(ngx_rtmp_session_t) +
             sizeof(ngx_chain_t *) * ((ngx_rtmp_core_srv_conf_t *)
                 addr_conf->ctx-> srv_conf[ngx_rtmp_core_module
@@ -161,11 +165,14 @@ ngx_rtmp_init_session(ngx_connection_t *c, ngx_rtmp_addr_conf_t *addr_conf)
         return NULL;
     }
 
+    /* 指向 server{} 下所属的 ngx_rtmp_conf_ctx_t 下的 main_conf 指针数组 */
     s->main_conf = addr_conf->ctx->main_conf;
+    /* 指向 server{} 下所属的 ngx_rtmp_conf_ctx_t 下的 srv_conf 指针数组 */
     s->srv_conf = addr_conf->ctx->srv_conf;
 
     s->addr_text = &addr_conf->addr_text;
 
+    /* 将 c->data 指向该会话结构体首地址 */
     c->data = s;
     s->connection = c;
 
@@ -191,8 +198,13 @@ ngx_rtmp_init_session(ngx_connection_t *c, ngx_rtmp_addr_conf_t *addr_conf)
         return NULL;
     }
 
+    /* 获取 server{} 下创建的 ngx_rtmp_core_module 模块创建的 
+     * ngx_rtmp_core_srv_conf_t 配置项结构体，该结构体也对应着
+     * 当前这个server{}，因此也就保存着当前 server{} 下所有的
+     * 配置项 */
     cscf = ngx_rtmp_get_module_srv_conf(s, ngx_rtmp_core_module);
 
+    /* 输出队列的个数 */
     s->out_queue = cscf->out_queue;
     s->out_cork = cscf->out_cork;
     s->in_streams = ngx_pcalloc(c->pool, sizeof(ngx_rtmp_stream_t)
@@ -209,9 +221,12 @@ ngx_rtmp_init_session(ngx_connection_t *c, ngx_rtmp_addr_conf_t *addr_conf)
     s->epoch = ngx_current_msec;
     s->timeout = cscf->timeout;
     s->buflen = cscf->buflen;
+    /* 设置 */
     ngx_rtmp_set_chunk_size(s, NGX_RTMP_DEFAULT_CHUNK_SIZE);
 
 
+    /* 遍历 events 数组中保存的每个 RTMP 模块的 NGX_RTMP_CONNECT 事件，
+     * 这里仅有 TMP_LIMIT_MODULE 设置了该事件 */
     if (ngx_rtmp_fire_event(s, NGX_RTMP_CONNECT, NULL, NULL) != NGX_OK) {
         ngx_rtmp_finalize_session(s);
         return NULL;

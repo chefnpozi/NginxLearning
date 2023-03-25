@@ -254,6 +254,7 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
 
     delta = ngx_current_msec;
 
+    /* 返回到这里，然后接着往下执行 */
     (void) ngx_process_events(cycle, timer, flags);
 
     delta = ngx_current_msec - delta;
@@ -269,6 +270,8 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
 
     ngx_event_expire_timers();
 
+    /* 将会执行到这里，由上面的分析可知，已经将 send_evt 事件放入到了 
+     * ngx_posted_events 延迟队列中，因此会取出该事件，并执行 */
     ngx_event_process_posted(cycle, &ngx_posted_events);
 
     while (!ngx_queue_empty(&ngx_posted_delayed_events)) {

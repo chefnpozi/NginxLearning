@@ -81,6 +81,10 @@ ngx_rtmp_protocol_message_handler(ngx_rtmp_session_t *s,
             return NGX_ERROR;
     }
 
+    /*接收到客户端发来的该 "createStream" amf 命令后，与上面分析的 "connect" 命令类似，调用到
+    ngx_rtmp_amf_message_handler 方法，然后在 amf_hash 中查找是否有 "createStream" 命令的回调方法，
+    这里找到的回调方法为 ngx_rtmp_cmd_create_stream_init 。*/
+
     return NGX_OK;
 }
 
@@ -366,6 +370,7 @@ ngx_rtmp_aggregate_message_handler(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 }
 
 
+// amf 消息的处理函数
 ngx_int_t
 ngx_rtmp_amf_message_handler(ngx_rtmp_session_t *s,
         ngx_rtmp_header_t *h, ngx_chain_t *in)
@@ -413,6 +418,7 @@ ngx_rtmp_amf_message_handler(ngx_rtmp_session_t *s,
     act.log = s->connection->log;
     memset(func, 0, sizeof(func));
 
+    /* 读取接收到的 amf 数据，获取 elts 中指定类型的 amf 数据，并保存在 elts->data 中 */
     if (ngx_rtmp_amf_read(&act, elts,
                 sizeof(elts) / sizeof(elts[0])) != NGX_OK)
     {
@@ -423,13 +429,22 @@ ngx_rtmp_amf_message_handler(ngx_rtmp_session_t *s,
 
     /* skip name */
     in = act.link;
+    /* 跳过已经读取的数据 */
     in->buf->pos += act.offset;
 
     len = ngx_strlen(func);
 
+    /* 根据读取到的 func，在 amf_hash 指向的 hash 表中查找，若能找到，
+     * 则返回对应的 ngx_array_t * 指针数组，该数组中保存着该 func 中
+     * 保存的内容的相关处理函数，这些处理函数是各 RTMP 模块在 
+     * postconfiguration 方法中保存到 cmcf->amf (ngx_array_t)数组中，
+     * 然后在 ngx_rtmp_init_event_handlers 方法中存到 amf_hash 哈希表中，
+     * 以便快速查找 */
     ch = ngx_hash_find(&cmcf->amf_hash,
             ngx_hash_strlow(func, func, len), func, len); // 为什么要将func小写化呢
 
+    // 在 ngx_rtmp_cmd_module.c 文件，即 ngx_rtmp_cmd_module 中，可以找到如下：
+    /* 若 ch 不为 NULL 且 ch->nelts 大于 0，表明有该类 ch 的处理函数 */
     if (ch && ch->nelts) {
         ph = ch->elts; // 拿出该数组中的每一个 handler 进行遍历
         for (n = 0; n < ch->nelts; ++n, ++ph) { // 
@@ -461,9 +476,11 @@ ngx_rtmp_receive_amf(ngx_rtmp_session_t *s, ngx_chain_t *in,
 {
     ngx_rtmp_amf_ctx_t     act;
 
+    /* 构建一个 amf 的上下文结构体 */
     ngx_memzero(&act, sizeof(act));
     act.link = in;
     act.log = s->connection->log;
 
+    /* 从 amf数据 中提取所需的数据 */
     return ngx_rtmp_amf_read(&act, elts, nelts);
 }

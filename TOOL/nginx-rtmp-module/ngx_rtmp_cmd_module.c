@@ -118,6 +118,7 @@ ngx_rtmp_cmd_connect_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 
     static ngx_rtmp_connect_t   v;
 
+    /* 从这里可以看出，对比图1，这里是指定要获取的 amf 类型的值 */
     static ngx_rtmp_amf_elt_t  in_cmd[] = {
 
         { NGX_RTMP_AMF_STRING,
@@ -165,6 +166,7 @@ ngx_rtmp_cmd_connect_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
     };
 
     ngx_memzero(&v, sizeof(v));
+    /* 从 in 中提取 in_elts 中指定的数据，并保存在 in_elts 中的相应位置 */
     if (ngx_rtmp_receive_amf(s, in, in_elts,
                 sizeof(in_elts) / sizeof(in_elts[0])))
     {
@@ -188,7 +190,13 @@ ngx_rtmp_cmd_connect_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
             (uint32_t)v.acodecs, (uint32_t)v.vcodecs,
             (ngx_int_t)v.object_encoding);
 
+    /* ngx_rtmp_connect 和 各个 RTMP 模块的 next_connect 构成了一个单链表，
+     * 该链表的元素都是各 RTMP 模块想要在 connect 阶段进行的操作，初始化该链表
+     * 是在 postconfiguration 方法中进行的 */
     return ngx_rtmp_connect(s, &v);   // ngx_rtmp_notify_connect
+    /*对于 connect，主要有以下的 RTMP 模块添加了相应的操作：(下面是根据调用顺序排列的)
+    ngx_rtmp_notify_module -> ngx_rtmp_notify_connect
+    ngx_rtmp_cmd_module -> ngx_rtmp_cmd_connect*/
 }
 
 
@@ -236,6 +244,7 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
           &object_encoding, 0 }
     };
 
+    /* 从内容可以看出，这里是针对客户端发来的 connect，服务器将要发给客户端的响应 */
     static ngx_rtmp_amf_elt_t  out_elts[] = {
 
         { NGX_RTMP_AMF_STRING,
@@ -255,12 +264,15 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
           out_inf, sizeof(out_inf) },
     };
 
+    /* 检测当前会话是否已经连接了，若是，则表明重复接收到了客户端的 connect，
+     * 因此返回 ERROR */
     if (s->connected) {
         ngx_log_error(NGX_LOG_INFO, s->connection->log, 0,
                 "connect: duplicate connection");
         return NGX_ERROR;
     }
 
+    /* 获取该 server{} 下的配置结构体 */
     cscf = ngx_rtmp_get_module_srv_conf(s, ngx_rtmp_core_module);
 
     trans = v->trans;
@@ -268,6 +280,7 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
     /* fill session parameters */
     s->connected = 1;
 
+    /* 初始化 RTMP 头 */
     ngx_memzero(&h, sizeof(h));
     h.csid = NGX_RTMP_CSID_AMF_INI;
     h.type = NGX_RTMP_MSG_AMF_CMD;
@@ -278,6 +291,7 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
     s->name.data = ngx_palloc(s->connection->pool, s->name.len);              \
     ngx_memcpy(s->name.data, v->name, s->name.len)
 
+    /* 将这些参数设置到 ngx_rtmp_session_t 会话结构体 s 中 */
     NGX_RTMP_SET_STRPAR(app);
     NGX_RTMP_SET_STRPAR(args);
     NGX_RTMP_SET_STRPAR(flashver);
@@ -295,6 +309,9 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
     s->acodecs = (uint32_t) v->acodecs;
     s->vcodecs = (uint32_t) v->vcodecs;
 
+    /* 遍历当前 server{} 下的所有 application{}，找到与客户端发来的 connect 命令中
+     * 要求连接的 app，然后把该 app 对应的 application{} 下所属的 ngx_rtmp_conf_ctx_t
+     * 的 app_conf 指针数组赋给当前会话 s->app_conf */
     // 找到客户端 connect 的应用配置
     /* find application & set app_conf */
     cacfp = cscf->applications.elts;
@@ -311,6 +328,7 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
         }
     }
 
+    /* 若是没有找到，则表示没有客户端所要请求的 application，因此返回 ERROR */
     if (s->app_conf == NULL) {
         ngx_log_error(NGX_LOG_INFO, s->connection->log, 0,
                       "connect: application not found: '%V'", &s->app);
@@ -319,6 +337,7 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
 
     object_encoding = v->object_encoding;
 
+    /* 这里依次发送 ack_size、bandwidth、chunk_size、amf 给客户端 */
             /* 发送应答窗口大小：ack_size 给客户端，该消息是用来通知对方应答窗口的大小，
             * 发送方在发送了等于窗口大小的数据之后，等的爱接收对方的应答消息（在接收  
             * 到应答消息之前停止发送数据）。接收当必须发送应答消息，在会话开始时，在  
@@ -337,6 +356,11 @@ ngx_rtmp_cmd_connect(ngx_rtmp_session_t *s, ngx_rtmp_connect_t *v)
            // 服务端相应客户端connect命令消息后，客户端会发送releaseStream命令消息给服务器，nginx-rtmp-module对该命令不进行处理
            // 接着等待接收下一条命令消息
            // 接着服务端收到来自客户端的createStream命令消息，会调用 ngx_rtmp_cmd_create_stream_init
+    /*rtmp 服务端发送完上面的几个 rtmp 包后，若客户端没有立刻发送 rtmp 包，则将读事件添加到 epoll 中，
+    然后监听客户端发来的第二个 rtmp 包。
+    其实，rtmp 服务器在接收到 "createStream" 之前，还接收到了客户端一个 NGX_RTMP_MSG_ACK_SIZE(5) 的包,
+    接收到该包后，仅是调用 ngx_rtmp_protocol_message_handler 方法将包中的实际数据取出来，赋给
+    s->ack_size，如下： ngx_rtmp_protocol_message_handler */
 }
 
 
@@ -354,6 +378,7 @@ ngx_rtmp_cmd_create_stream_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
           &v.trans, sizeof(v.trans) },
     };
 
+    /* 从 amf 数据中读取 in_elts 中指定的数据 */
     // 解析该 createStream 命令消息，获取 v.trans 值
     if (ngx_rtmp_receive_amf(s, in, in_elts,
                 sizeof(in_elts) / sizeof(in_elts[0])))
@@ -363,6 +388,7 @@ ngx_rtmp_cmd_create_stream_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 
     ngx_log_error(NGX_LOG_INFO, s->connection->log, 0, "createStream");
 
+    // 在 nginx-rtmp 源码中，可知，仅有 ngx_rtmp_cmd_module 模块设置了该命令的方法
     // 接着，从该函数中开始调用 ngx_rtmp_create_stream 构建的函数链表。这里调用到的是 ngx_rtmp_cmd_create_stream 函数
     return ngx_rtmp_create_stream(s, &v);
 }
@@ -403,7 +429,7 @@ ngx_rtmp_cmd_create_stream(ngx_rtmp_session_t *s, ngx_rtmp_create_stream_t *v)
 
     h.csid = NGX_RTMP_CSID_AMF_INI;
     h.type = NGX_RTMP_MSG_AMF_CMD;
-    // 发送对于 createStream 的响应
+    // 发送对于 createStream 的响应 发送该 amf 数据 
     // 客户端会接收到服务器对 createStream 的响应包：_result() 会调用ngx_rtmp_relay_on_result
     return ngx_rtmp_send_amf(s, &h, out_elts,
                              sizeof(out_elts) / sizeof(out_elts[0])) == NGX_OK ?
@@ -586,6 +612,7 @@ ngx_rtmp_cmd_play_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 
     ngx_memzero(&v, sizeof(v));
 
+    /* 从接收到的 amf 数据中提取指定数据 */
     if (ngx_rtmp_receive_amf(s, in, in_elts,
                              sizeof(in_elts) / sizeof(in_elts[0])))
     {
@@ -602,6 +629,20 @@ ngx_rtmp_cmd_play_init(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
                   (ngx_int_t) v.silent);
 
     return ngx_rtmp_play(s, &v);
+    /*ngx_rtmp_play 构成的链表主要有以下几个 RTMP 模块添加有回调方法：(调用顺序排序)
+
+    ngx_rtmp_log_module -> ngx_rtmp_log_play
+    ngx_rtmp_notify_module -> ngx_rtmp_notify_play
+    ngx_rtmp_exec_module -> ngx_rtmp_exec_play
+    ngx_rtmp_relay_module -> ngx_rtmp_relay_play
+    ngx_rtmp_play_module -> ngx_rtmp_play_play
+    ngx_rtmp_live_module -> ngx_rtmp_log_play
+    ngx_rtmp_access_module -> ngx_rtmp_access_play
+    ngx_rtmp_cmd_module -> ngx_rtmp_cmd_play
+    从 nginx-rtmp 的源码可知，主要就是调用 ngx_rtmp_play_module 模块设置的回调方法 ngx_rtmp_play_play，
+    而其他模块的都没有做什么，因为没有在配置文件中配置有相关命令来启动它们。
+
+    在看 ngx_rtmp_play_play 方法前，先看 ngx_rtmp_play_module 模块的配置项：*/
 }
 
 
@@ -820,6 +861,8 @@ ngx_rtmp_cmd_set_buflen(ngx_rtmp_session_t *s, ngx_rtmp_set_buflen_t *v)
 }
 
 
+/*即 ngx_rtmp_cmd_module 模块在接收到左边的命令，如 connect 时，就会调用右边的处理函数。因此，下面将
+会调用 ngx_rtmp_cmd_connect_init 方法*/
 static ngx_rtmp_amf_handler_t ngx_rtmp_cmd_map[] = { // 挂载ph
     { ngx_string("connect"),            ngx_rtmp_cmd_connect_init           },
     { ngx_string("createStream"),       ngx_rtmp_cmd_create_stream_init     },
@@ -832,6 +875,7 @@ static ngx_rtmp_amf_handler_t ngx_rtmp_cmd_map[] = { // 挂载ph
     { ngx_string("pause"),              ngx_rtmp_cmd_pause_init             },
     { ngx_string("pauseraw"),           ngx_rtmp_cmd_pause_init             },
 };
+
 
 
 static ngx_int_t

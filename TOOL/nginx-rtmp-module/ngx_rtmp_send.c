@@ -37,6 +37,7 @@
 #define NGX_RTMP_USER_OUT1(v)                                               \
     *(__b->last++) = ((u_char*)&v)[0];
 
+// 该宏主要是将 v 的值转换为大端字节序放置到通过 NGX_RTMP_USER_START 宏分配好缓存的内存中。
 #define NGX_RTMP_USER_OUT4(v)                                               \
     *(__b->last++) = ((u_char*)&v)[3];                                      \
     *(__b->last++) = ((u_char*)&v)[2];                                      \
@@ -60,8 +61,10 @@ ngx_rtmp_send_shared_packet(ngx_rtmp_session_t *s, ngx_chain_t *cl)
 
     cscf = ngx_rtmp_get_module_srv_conf(s, ngx_rtmp_core_module);
 
+    /* cl 中已经包含一个完整的将要发送给客户端的 rtmp 包 */
     rc = ngx_rtmp_send_message(s, cl, 0);
 
+    /* 将 cl 的引用计数减 1，当为 0 时，则将其插入到 cscf->free 链表头中 */
     ngx_rtmp_free_shared_chain(cscf, cl);
 
     return rc;
@@ -176,11 +179,14 @@ ngx_rtmp_create_bandwidth(ngx_rtmp_session_t *s, uint32_t ack_size,
                    ack_size, (int)limit_type);
 
     {
+        /* 创建发送缓存并初始化 rtmp 头部一些信心，如 message type、csid 等 */
         NGX_RTMP_USER_START(s, NGX_RTMP_MSG_BANDWIDTH);
 
+        /* 填充将要发送的实际数据 */
         NGX_RTMP_USER_OUT4(ack_size);
         NGX_RTMP_USER_OUT1(limit_type);
 
+        /* 主要是构造 rtmp 头，形成完整的 rtmp 包 */
         NGX_RTMP_USER_END(s);
     }
 }
@@ -403,6 +409,7 @@ ngx_rtmp_append_amf(ngx_rtmp_session_t *s,
         act.link = *last;
     }
 
+    /* 将 elts 中的 amf 数据写入到 act 中 */
     rc = ngx_rtmp_amf_write(&act, elts, nelts);
 
     if (first) {
@@ -432,6 +439,7 @@ ngx_rtmp_create_amf(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 
     first = NULL;
 
+    /* 先将 amf 的数据写入到  */
     rc = ngx_rtmp_append_amf(s, &first, NULL, elts, nelts);
 
     if (rc != NGX_OK && first) {
@@ -440,6 +448,7 @@ ngx_rtmp_create_amf(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
     }
 
     if (first) {
+        /* 最后将其封装成 rtmp 包 */
         ngx_rtmp_prepare_message(s, h, NULL, first);
     }
 

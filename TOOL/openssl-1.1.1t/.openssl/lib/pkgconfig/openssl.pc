@@ -1,4 +1,4 @@
-prefix=/home/chezi/resty_code/code/TOOL/openssl-1.1.1t/.openssl
+prefix=/home/fengh11/local/code/TOOL/openssl-1.1.1t/.openssl
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include

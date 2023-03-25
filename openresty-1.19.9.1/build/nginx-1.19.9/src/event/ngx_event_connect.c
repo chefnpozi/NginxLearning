@@ -31,6 +31,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     ngx_event_t       *rev, *wev;
     ngx_connection_t  *c;
 
+    /* 该 get 方法其实没有做任何处理 */
     rc = pc->get(pc, pc->data);
     if (rc != NGX_OK) {
         return rc;
@@ -38,6 +39,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
 
     type = (pc->type ? pc->type : SOCK_STREAM);
 
+    /* 创建一个 socket 套接字 */
 #if (NGX_HAVE_SOCKET_CLOEXEC)
     s = ngx_socket(pc->sockaddr->sa_family, type | SOCK_CLOEXEC, 0);
 
@@ -57,6 +59,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     }
 
 
+    /* 从连接池中获取一个空闲连接 */
     c = ngx_get_connection(s, pc->log);
 
     if (c == NULL) {
@@ -68,8 +71,10 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
         return NGX_ERROR;
     }
 
+    /* 当前 socket 的类型，是 STREAM 还是 DGRAM，这里为 STREAM */
     c->type = type;
 
+    /* 若设置了接收缓冲区的大小，从上面知没有设置 */
     if (pc->rcvbuf) {
         if (setsockopt(s, SOL_SOCKET, SO_RCVBUF,
                        (const void *) &pc->rcvbuf, sizeof(int)) == -1)
@@ -92,6 +97,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
         }
     }
 
+    /* 将该 socket 套接字设置为非阻塞 */
     if (ngx_nonblocking(s) == -1) {
         ngx_log_error(NGX_LOG_ALERT, pc->log, ngx_socket_errno,
                       ngx_nonblocking_n " failed");
@@ -108,6 +114,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     }
 #endif
 
+    /* local 保存的是本地地址信息，则上面可知，没有设置 */
     if (pc->local) {
 
 #if (NGX_HAVE_TRANSPARENT_PROXY)
@@ -174,11 +181,13 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     }
 
     if (type == SOCK_STREAM) {
+        /* 设置当前连接的 IO 回调函数 */
         c->recv = ngx_recv;
         c->send = ngx_send;
         c->recv_chain = ngx_recv_chain;
         c->send_chain = ngx_send_chain;
 
+        /* 使用 sendfile */
         c->sendfile = 1;
 
         if (pc->sockaddr->sa_family == AF_UNIX) {
@@ -199,6 +208,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
 
     c->log_error = pc->log_error;
 
+    /* 设置当前主动连接读写事件的回调函数 */
     rev = c->read;
     wev = c->write;
 
@@ -209,6 +219,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
 
     c->number = ngx_atomic_fetch_add(ngx_connection_counter, 1);
 
+    /* 将该主动连接的读写事件添加到 epoll 等事件监控机制中 */
     if (ngx_add_conn) {
         if (ngx_add_conn(c) == NGX_ERROR) {
             goto failed;
@@ -218,6 +229,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
     ngx_log_debug3(NGX_LOG_DEBUG_EVENT, pc->log, 0,
                    "connect to %V, fd:%d #%uA", pc->name, s, c->number);
 
+    /* 连接该上游服务器，因为该 socket 套接字被设置为非阻塞，因此首次connect返回 -1，即失败 */
     rc = connect(s, pc->sockaddr, pc->socklen);
 
     if (rc == -1) {
@@ -261,6 +273,7 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc)
         }
     }
 
+    /* 因此，从这里返回 NGX_AGAIN */
     if (ngx_add_conn) {
         if (rc == -1) {
 

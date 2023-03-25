@@ -191,6 +191,8 @@ done:
 }
 
 
+/*该函数主要根据 ctx->name 通过 hash 的 key 方法，得到映射槽的位置 h，即 pacf->ctx[h]，然后将其插入到
+  ngx_rtmp_play_module 的上下文结构体 ctx 的 ctx->next 构建的链表中.*/
 static ngx_int_t
 ngx_rtmp_play_join(ngx_rtmp_session_t *s)
 {
@@ -261,6 +263,7 @@ ngx_rtmp_play_leave(ngx_rtmp_session_t *s)
 }
 
 
+/*点播的最后一个调用就是在该函数中循环的，直到全部发送文件完成后，才返回*/
 static void
 ngx_rtmp_play_send(ngx_event_t *e)
 {
@@ -277,6 +280,7 @@ ngx_rtmp_play_send(ngx_event_t *e)
 
     ts = 0;
 
+    /* 调用相应封装的 send 函数 */
     rc = ctx->fmt->send(s, &ctx->file, &ts);
 
     if (rc > 0) {
@@ -299,6 +303,9 @@ ngx_rtmp_play_send(ngx_event_t *e)
         ngx_log_debug0(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
                        "play: send restart");
 
+        /* 每发送完成一次，就将其放入到 ngx_posted_events 延迟队列中,
+         * 然后由下一次 ngx_process_events_and_timers 函数中的循环
+         * 调用到它 */
         ngx_post_event(e, &ngx_posted_events);
         return;
     }
@@ -307,6 +314,7 @@ ngx_rtmp_play_send(ngx_event_t *e)
     ngx_log_debug0(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
                    "play: send done");
 
+    /* 发送 stream_eof  */
     ngx_rtmp_send_stream_eof(s, NGX_RTMP_MSID);
 
     ngx_rtmp_send_play_status(s, "NetStream.Play.Complete", "status", ts, 0);
@@ -326,6 +334,7 @@ ngx_rtmp_play_do_init(ngx_rtmp_session_t *s)
         return NGX_ERROR;
     }
 
+    /* 根据 fmt 调用相应封装格式的 init 函数，这里只支持两种封装格式，flv 和 mp4 */
     if (ctx->fmt && ctx->fmt->init &&
         ctx->fmt->init(s, &ctx->file, ctx->aindex, ctx->vindex) != NGX_OK)
     {
@@ -371,14 +380,17 @@ ngx_rtmp_play_do_start(ngx_rtmp_session_t *s)
     ngx_log_debug0(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
                    "play: start");
 
+    /* 调用相应封装的 start 函数 */
     if (ctx->fmt && ctx->fmt->start &&
         ctx->fmt->start(s, &ctx->file) != NGX_OK)
     {
         return NGX_ERROR;
     }
 
+    /* 将 ctx->send_evt 事件放入到 ngx_posted_events 延迟队列中 */
     ngx_post_event((&ctx->send_evt), &ngx_posted_events);
 
+    /* 置位 playing 标志位，表示开始发送文件 */
     ctx->playing = 1;
 
     return NGX_OK;
@@ -399,12 +411,15 @@ ngx_rtmp_play_do_seek(ngx_rtmp_session_t *s, ngx_uint_t timestamp)
     ngx_log_debug1(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
                    "play: seek timestamp=%ui", timestamp);
 
+    /* 调用相应封装的 seek 函数 */
     if (ctx->fmt && ctx->fmt->seek &&
         ctx->fmt->seek(s, &ctx->file, timestamp) != NGX_OK)
     {
         return NGX_ERROR;
     }
 
+    /* 若播放标志位已经置位，则将 ctx->send_evt 事件放入到 延迟队列 ngx_posted_events 中，
+     * 正常来说应该还没有置位，仅在 ngx_rtmp_play_do_stark 中将其置 1 */
     if (ctx->playing) {
         ngx_post_event((&ctx->send_evt), &ngx_posted_events);
     }
@@ -732,6 +747,7 @@ ngx_rtmp_play_play(ngx_rtmp_session_t *s, ngx_rtmp_play_t *v)
     }
 
     if (ctx == NULL) {
+        /* 分配 ngx_rtmp_play_module 模块的上下文结构体，并将其放入到全局数组 s->ctx 中 */
         ctx = ngx_palloc(s->connection->pool, sizeof(ngx_rtmp_play_ctx_t));
         ngx_rtmp_set_ctx(s, ctx, ngx_rtmp_play_module);
     }
@@ -749,13 +765,15 @@ ngx_rtmp_play_play(ngx_rtmp_session_t *s, ngx_rtmp_play_t *v)
     name.len = ngx_strlen(v->name);
     name.data = v->name;
 
+    /* pmcf->fmts 数组是在 postconfiguration 方法中初始化好的，
+     * 在 nginx-rtmp 中，该数组仅有两项，分别是 flv 和 mp4 */
     pfmt = pmcf->fmts.elts;
 
     for (n = 0; n < pmcf->fmts.nelts; ++n, ++pfmt) {
         fmt = *pfmt;
 
-        pfx = &fmt->pfx;
-        sfx = &fmt->sfx;
+        pfx = &fmt->pfx;    // 封装格式的前缀
+        sfx = &fmt->sfx;    // 封装格式的后缀
 
         if (pfx->len == 0 && ctx->fmt == NULL) {
             ctx->fmt = fmt;
@@ -770,6 +788,7 @@ ngx_rtmp_play_play(ngx_rtmp_session_t *s, ngx_rtmp_play_t *v)
             break;
         }
 
+        /* 比较客户端请求播放的文件的后缀与服务器支持的文件后缀是否一致 */
         if (name.len >= sfx->len &&
             ngx_strncasecmp(sfx->data, name.data + name.len - sfx->len,
                             sfx->len) == 0)
@@ -822,6 +841,7 @@ ngx_rtmp_play_next_entry(ngx_rtmp_session_t *s, ngx_rtmp_play_t *v)
 
     for ( ;; ) {
 
+        /* 若文件描述符不为 -1 ，则关闭它 */
         if (ctx->file.fd != NGX_INVALID_FILE) {
             ngx_close_file(ctx->file.fd);
             ctx->file.fd = NGX_INVALID_FILE;
@@ -843,6 +863,9 @@ ngx_rtmp_play_next_entry(ngx_rtmp_session_t *s, ngx_rtmp_play_t *v)
             break;
         }
 
+        /* 根据 ctx->nentry 获取当前要播放的路径，该路径保存在 ngx_rtmp_play_entry_t，
+         * 若播放的是本地文件，则路径保存在成员 root 中，若播放的是网络文件，则路径
+         * 保存在 url 中 */
         pe = ngx_rtmp_play_get_current_entry(s);
 
         ngx_log_debug4(NGX_LOG_DEBUG_RTMP, s->connection->log, 0,
@@ -863,6 +886,7 @@ ngx_rtmp_play_next_entry(ngx_rtmp_session_t *s, ngx_rtmp_play_t *v)
                          pe->root, v->name + ctx->pfx_size, &ctx->sfx);
         *p = 0;
 
+        /* 打开要播放的本地文件 */
         ctx->file.fd = ngx_open_file(path, NGX_FILE_RDONLY, NGX_FILE_OPEN,
                                      NGX_FILE_DEFAULT_ACCESS);
 
@@ -899,10 +923,12 @@ ngx_rtmp_play_open(ngx_rtmp_session_t *s, double start)
         return NGX_ERROR;
     }
 
+    /* 向客户端发送 消息类型为NGX_RTMP_MSG_USER(4) 的 stream_begin 消息, 如下图[9] */
     if (ngx_rtmp_send_stream_begin(s, NGX_RTMP_MSID) != NGX_OK) {
         return NGX_ERROR;
     }
 
+    /* 然后接着发送状态消息，如下图[10] */
     if (ngx_rtmp_send_status(s, "NetStream.Play.Start", "status",
                              "Start video on demand")
         != NGX_OK)
@@ -914,24 +940,31 @@ ngx_rtmp_play_open(ngx_rtmp_session_t *s, double start)
         return NGX_ERROR;
     }
 
+    /* 初始化该 send_evt 事件 */
     e = &ctx->send_evt;
     e->data = s;
+    /* 初始化发送 指定播放文件数据的 回调函数 */
     e->handler = ngx_rtmp_play_send;
     e->log = s->connection->log;
 
+    /* 发送 recored 命令，如下图[11] */
     ngx_rtmp_send_recorded(s, 1);
 
+    /* 发送 sample access，如下图[12] */
     if (ngx_rtmp_send_sample_access(s) != NGX_OK) {
         return NGX_ERROR;
     }
 
+    /* 调用相应封装格式的 init 函数 */
     if (ngx_rtmp_play_do_init(s) != NGX_OK) {
         return NGX_ERROR;
     }
 
+    /* 计算时间戳，有下一步 seek 可知，其实就是计算发送 媒体文件的起始位置 */
     timestamp = ctx->post_seek != NGX_CONF_UNSET_UINT ? ctx->post_seek :
                 (start < 0 ? 0 : (ngx_uint_t) start);
 
+    /* 同理，调用相应封装格式的 seek 函数，将文件指针 seek 到 timstamp 位置（相对文件起始） */
     if (ngx_rtmp_play_do_seek(s, timestamp) != NGX_OK) {
         return NGX_ERROR;
     }
@@ -940,10 +973,14 @@ ngx_rtmp_play_open(ngx_rtmp_session_t *s, double start)
         return NGX_ERROR;
     }
 
+    /* 置位 opend 标志位，表示文件已经打开了 */
     ctx->opened = 1;
 
     return NGX_OK;
 }
+/*从 ngx_rtmp_play_open 函数返回后，会一路返回到 ngx_rtmp_recv 函数中，然后解析完接收到的下一个客户端
+发送来的 user control message(4) 消息（在开始分析 play 时说过）后，就一路返回到
+ngx_process_events_and_timers 函数中，即如下：*/
 
 
 static ngx_chain_t *
@@ -1189,6 +1226,7 @@ ngx_rtmp_play_url(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     size_t                          add, n;
     ngx_str_t                      *value;
 
+    /* 初始化 pacf->entries 数组 */
     if (pacf->entries.nalloc == 0 &&
         ngx_array_init(&pacf->entries, cf->pool, 1, sizeof(void *)) != NGX_OK)
     {
@@ -1211,6 +1249,8 @@ ngx_rtmp_play_url(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
         *ppe = pe;
 
+        /* 如果 "play" 配置项后的值，即 url 不为 "http://" 开始的，即为本地文件 */
+
         if (ngx_strncasecmp(value[n].data, (u_char *) "http://", 7)) {
 
             /* local file */
@@ -1225,6 +1265,8 @@ ngx_rtmp_play_url(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
             continue;
         }
 
+        /* 否则，为网络文件 */
+        
         /* http case */
 
         url = value[n];
@@ -1256,6 +1298,9 @@ ngx_rtmp_play_url(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     }
 
     return NGX_CONF_OK;
+    /*该函数主要就是提取 "play" 配置项后的值，判断是本地文件还是网络文件，根据相应值构造 ngx_rtmp_play_entry_t，并将该指向该
+    结构体的指针放入到 pacf->entries 数组中.
+    下面继续看 ngx_rtmp_play_play 函数。*/
 }
 
 

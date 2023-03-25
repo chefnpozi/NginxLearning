@@ -185,7 +185,7 @@ cc -DNGX_LUA_USE_ASSERT -DNGX_LUA_ABORT_AT_PANIC -O2 -Werror -W -O0 -D_GNU_SOURC
 ----------------------------------------
 checking for crypt()
 
-/usr/bin/ld: /tmp/ccy6jfD9.o: in function `main':
+/usr/bin/ld: /tmp/ccoXcW3G.o: in function `main':
 autotest.c:(.text+0x1d): undefined reference to `crypt'
 collect2: error: ld returned 1 exit status
 ----------
@@ -810,7 +810,7 @@ checking for FD_CLOEXEC support
 
 
 ----------------------------------------
-checking for LuaJIT library in /home/chezi/resty_code/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/lib and /home/chezi/resty_code/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/include/luajit-2.1 (specified by the LUAJIT_LIB and LUAJIT_INC env, with -ldl)
+checking for LuaJIT library in /home/fengh11/local/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/lib and /home/fengh11/local/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/include/luajit-2.1 (specified by the LUAJIT_LIB and LUAJIT_INC env, with -ldl)
 
 
 ----------------------------------------
@@ -924,7 +924,7 @@ checking for execvpe
 
 
 ----------------------------------------
-checking for LuaJIT library in /home/chezi/resty_code/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/lib and /home/chezi/resty_code/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/include/luajit-2.1 (specified by the LUAJIT_LIB and LUAJIT_INC env, with -ldl)
+checking for LuaJIT library in /home/fengh11/local/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/lib and /home/fengh11/local/code/openresty-1.19.9.1/build/luajit-root/usr/local/src/openresty/luajit/include/luajit-2.1 (specified by the LUAJIT_LIB and LUAJIT_INC env, with -ldl)
 
 
 ----------------------------------------

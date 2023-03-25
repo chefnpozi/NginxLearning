@@ -89,11 +89,17 @@ ngx_rtmp_limit_connect(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
     uint32_t                   *nconn, n;
     ngx_int_t                   rc;
 
+    /* 获取 server{} 所属的 ngx_rtmp_conf_ctx_t 的 main_conf 指针数组中
+     * ngx_rtmp_limit_module 对应的序号的 main 级别配置结构体 */
     lmcf = ngx_rtmp_get_module_main_conf(s, ngx_rtmp_limit_module);
+    /* 检测 nginx.conf 配置文件中是否设置了 max_connections 配置项，若没有
+     * 则直接返回 */
     if (lmcf->max_conn == NGX_CONF_UNSET) {
         return NGX_OK;
     }
 
+    /* 下面是在配置文件有 max_connections 配置项的情况下检测当前的
+     * 连接数是否大于 max_connections 的值 */
     shm_zone = lmcf->shm_zone;
     shpool = (ngx_slab_pool_t *) shm_zone->shm.addr;
     nconn = shm_zone->data;

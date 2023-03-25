@@ -840,7 +840,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
         instance = (uintptr_t) c & 1;
         c = (ngx_connection_t *) ((uintptr_t) c & (uintptr_t) ~1);
 
-/* 获取被监听的读事件 */
+        /* 获取被监听的读事件 */
         rev = c->read;
 
         if (c->fd == -1 || rev->instance != instance) {
@@ -855,7 +855,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
             continue;
         }
 
- /* 获取 epoll_wait 返回的事件标志 */
+        /* 获取 epoll_wait 返回的事件标志 */
         revents = event_list[i].events;
 
         ngx_log_debug3(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
@@ -883,7 +883,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
         }
 #endif
 
-/* 若是监听的事件可读，首次监听即表示有新连接到来 */
+        /* 若是监听的事件可读，首次监听即表示有新连接到来 */
         if ((revents & EPOLLIN) && rev->active) {
 
 #if (NGX_HAVE_EPOLLRDHUP)
@@ -895,7 +895,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
             rev->ready = 1;
             rev->available = -1;
 
-/* 若是开启了负载均衡，则先将该事件添加到 ngx_posted_accept_events 
+            /* 若是开启了负载均衡，则先将该事件添加到 ngx_posted_accept_events 
              * 延迟队列中 */
             if (flags & NGX_POST_EVENTS) {
                 queue = rev->accept ? &ngx_posted_accept_events
