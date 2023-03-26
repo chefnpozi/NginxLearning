@@ -526,6 +526,7 @@ ngx_rtmp_core_application(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 }
 
 
+/*解析 listen 配置项*/
 static char *
 ngx_rtmp_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
@@ -543,13 +544,16 @@ ngx_rtmp_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     struct sockaddr_in6        *sin6;
 #endif
 
+    /* 指向 "listen xxx" 配置项，如 "listen 1935" */
     value = cf->args->elts;
 
     ngx_memzero(&u, sizeof(ngx_url_t));
 
+    /* 将监听的端口赋给 u.url，如 "1935" */
     u.url = value[1];
     u.listen = 1;
 
+    /* 解析该监听的端口 */
     if (ngx_parse_url(cf->pool, &u) != NGX_OK) {
         if (u.err) {
             ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
@@ -564,6 +568,8 @@ ngx_rtmp_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     ls = cmcf->listen.elts;
 
+    /* 遍历listen数组，若有元素，将待监听的地址与数组中的保存的地址进行比较，
+     * 若有相同的，则返回错误，否则添加到listen数组中 */
     for (i = 0; i < cmcf->listen.nelts; i++) {
 
         sa = (struct sockaddr *) ls[i].sockaddr;
@@ -631,6 +637,7 @@ ngx_rtmp_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
         }
     }
 
+    /* 若监听端口后面还附加有其他条件，则进行处理，否则直接返回 */
     for (i = 2; i < cf->args->nelts; i++) {
 
         if (ngx_strcmp(value[i].data, "bind") == 0) {

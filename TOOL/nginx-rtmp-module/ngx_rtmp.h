@@ -61,6 +61,10 @@ typedef struct {
     int                     tcp_keepcnt;
 #endif
 } ngx_rtmp_listen_t;
+/*对同一个端口 1935，可以同时监听 127.0.0.1:8000、192.168.56.101:1935 这两个地址，当一台物理机器具备多个 IP
+地址时这是很有用的。对应到 RTMP 的框架上，Nginx 是使用 ngx_rtmp_conf_addr_t 结构体来表示一个对应着具体地址
+的监听端口，因此，一个 ngx_rtmp_conf_port_t 将会对应多个 ngx_rtmp_conf_addr_t，而 ngx_rtmp_conf_addr_t 是
+以动态数组的形式保存在 ngx_rtmp_conf_port_t 中的 addrs 成员中的*/
 
 
 typedef struct {
@@ -92,9 +96,14 @@ typedef struct {
 
 
 typedef struct {
+    /* socket 地址家族 */
     int                     family;
+    /* 监听端口 */
     in_port_t               port;
+    /* 监听的端口下对应着的所有 ngx_rtmp_conf_addr_t 地址 */
     ngx_array_t             addrs;       /* array of ngx_rtmp_conf_addr_t */
+    /*一个端口，可能对应着多个地址（当主机上有多个 IP 地址时），
+    该地址用 ngx_rtmp_conf_addr_t 表示：*/
 } ngx_rtmp_conf_port_t;
 
 
@@ -307,6 +316,9 @@ typedef struct {
     ngx_array_t             servers;    /* ngx_rtmp_core_srv_conf_t */
     /* 每一个 listen 对应一个 ngx_rtmp_listen_t 结构体，
      * 该数组保存着 rtmp{} 下的所有 listen 配置项 */
+    /* 该数组保存着的元素是指向 ngx_rtmp_listen_t 结构体的指针，
+     * 每个元素代表一个需要监听的端口 Nginx 每从 nginx.conf 中解析中一个 listen 配置项，就把该配置项的值组织成 ngx_rtmp_listen_t 结构体添加到
+       ngx_rtmp_core_main_conf_t 的成员 listen 数组中*/
     ngx_array_t             listen;     /* ngx_rtmp_listen_t */
 
     /* rtmp 的事件数组，每个模块针对某个事件实现各自的方法都

@@ -188,6 +188,7 @@ ngx_rtmp_limit_postconfiguration(ngx_conf_t *cf)
 
     cmcf = ngx_rtmp_conf_get_module_main_conf(cf, ngx_rtmp_core_module);
 
+    /* NGX_RTMP_CONNECT 因此，在 ngx_rtmp_fire_event 方法中调用的对应 NGX_RTMP_CONNECT 事件的回调方法为 ngx_rtmp_limit_connect*/
     h = ngx_array_push(&cmcf->events[NGX_RTMP_CONNECT]);
     *h = ngx_rtmp_limit_connect;
 

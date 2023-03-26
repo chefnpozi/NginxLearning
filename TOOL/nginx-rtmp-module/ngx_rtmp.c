@@ -547,6 +547,7 @@ ngx_rtmp_init_event_handlers(ngx_conf_t *cf, ngx_rtmp_core_main_conf_t *cmcf)
 }
 
 
+/*将监听端口添加到 ports 数组中*/
 static ngx_int_t
 ngx_rtmp_add_ports(ngx_conf_t *cf, ngx_array_t *ports,
     ngx_rtmp_listen_t *listen)
@@ -578,6 +579,8 @@ ngx_rtmp_add_ports(ngx_conf_t *cf, ngx_array_t *ports,
         break;
     }
 
+    /* 首先比较 ports 数组中是否已经存在该待监听端口的，若已经存在，
+     * 则不用再次添加了，直接跳到 found 下，否则添加一个新的端口 */
     port = ports->elts;
     for (i = 0; i < ports->nelts; i++) {
         if (p == port[i].port && sa->sa_family == port[i].family) {
@@ -608,6 +611,7 @@ ngx_rtmp_add_ports(ngx_conf_t *cf, ngx_array_t *ports,
 
 found:
 
+    /* 这里有可能一个端口对应几个 IP 地址 */
     addr = ngx_array_push(&port->addrs);
     if (addr == NULL) {
         return NGX_ERROR;
@@ -673,6 +677,7 @@ ngx_rtmp_optimize_servers(ngx_conf_t *cf, ngx_array_t *ports)
                 continue;
             }
 
+            /* 创建并初始化 ngx_listening_t 结构体 */
             ls = ngx_create_listening(cf, addr[i].sockaddr, addr[i].socklen);
             if (ls == NULL) {
                 return NGX_CONF_ERROR;

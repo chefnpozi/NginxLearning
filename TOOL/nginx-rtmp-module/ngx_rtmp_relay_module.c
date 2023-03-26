@@ -1384,7 +1384,9 @@ ngx_rtmp_relay_handshake_done(ngx_rtmp_session_t *s, ngx_rtmp_header_t *h,
 {
     ngx_rtmp_relay_ctx_t   *ctx;
 
+    /* 获取 ngx_rtmp_relay_module 模块的上下文结构体 */
     ctx = ngx_rtmp_get_module_ctx(s, ngx_rtmp_relay_module);
+    /* 若 relay 为 0，则直接返回，这里是为 0，因为没有使用 relay 模块的相关功能 */
     if (ctx == NULL || !s->relay) {
         return NGX_OK;
     }
