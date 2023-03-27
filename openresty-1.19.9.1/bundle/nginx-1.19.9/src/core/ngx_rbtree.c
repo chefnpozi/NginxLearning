@@ -21,6 +21,14 @@ static ngx_inline void ngx_rbtree_right_rotate(ngx_rbtree_node_t **root,
     ngx_rbtree_node_t *sentinel, ngx_rbtree_node_t *node);
 
 
+/*
+ * 参数含义：
+ * - tree：是红黑树容器的指针
+ * - node：是需要添加到红黑树的节点指针
+ * 
+ * 执行意义：
+ * 向红黑树中添加节点，该方法会通过旋转红黑树保持树的平衡.
+ */
 void
 ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
 {
@@ -31,20 +39,24 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
     root = &tree->root;
     sentinel = tree->sentinel;
 
+    /* 若当前红黑树为空，即此时为插入第一个节点 */
     if (*root == sentinel) {
         node->parent = NULL;
         node->left = sentinel;
         node->right = sentinel;
+        /* 第一个节点为根节点，因此设置颜色为黑色 */
         ngx_rbt_black(node);
         *root = node;
 
         return;
     }
 
+    /* 否则调用插入方法 */
     tree->insert(*root, node, sentinel);
 
     /* re-balance tree */
 
+    /* 根据红黑树的性质调整树的结构 */
     while (node != *root && ngx_rbt_is_red(node->parent)) {
 
         if (node->parent == node->parent->parent->left) {
@@ -93,6 +105,16 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
 }
 
 
+/*
+ * 参数含义：
+ * - temp：是红黑树容器的指针
+ * - node：是待添加元素的ngx_rbtree_node_t成员的指针
+ * - sentinel：是这棵红黑树初始化时哨兵节点的指针
+ *
+ * 执行意义：
+ * 向红黑树添加数据节点，每个数据节点的关键字都是唯一的，不存在同一个
+ * 关键字有多个节点的问题.
+ */
 void
 ngx_rbtree_insert_value(ngx_rbtree_node_t *temp, ngx_rbtree_node_t *node,
     ngx_rbtree_node_t *sentinel)
@@ -101,19 +123,26 @@ ngx_rbtree_insert_value(ngx_rbtree_node_t *temp, ngx_rbtree_node_t *node,
 
     for ( ;; ) {
 
+        /* 首先比较 key 关键字，红黑树中以 key 作为第一索引关键字 */
         p = (node->key < temp->key) ? &temp->left : &temp->right;
 
+        /* 如果当前节点是哨兵节点，则跳出循环准备插入节点 */
         if (*p == sentinel) {
             break;
         }
 
+        /* 若不是哨兵，则继续遍历下一个节点 */
         temp = *p;
     }
 
+    /* 将 node 插入到该位置 */
     *p = node;
     node->parent = temp;
+    /* 左右子节点都是哨兵节点 */
     node->left = sentinel;
     node->right = sentinel;
+    /* 将节点颜色置为红色。注意，红黑树的ngx_rbtree_insert方法会在
+     * 可能的旋转操作后重置该节点的颜色 */
     ngx_rbt_red(node);
 }
 
