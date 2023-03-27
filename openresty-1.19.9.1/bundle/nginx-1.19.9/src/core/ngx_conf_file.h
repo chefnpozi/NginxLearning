@@ -75,11 +75,53 @@
 
 
 struct ngx_command_s {
+    /*
+     * 该配置指令的名称，如 daemon, worker_processes 等
+     */
     ngx_str_t             name;
+
+    /*
+     * 该配置项的类型，指定配置项可以出现的位置。如，出现在 server{}
+     * 或 location{} 中，以及它可以携带的参数个数
+     */
     ngx_uint_t            type;
+
+    /*
+     * 当 Nginx 在解析配置的时候，如果遇到这个配置指令，将会把读取到的值
+     * 传递给这个函数进行处理.
+     * @cf: 保存从配置文件读取到原始字符串以及相关的一些信息。这个参数的
+     *      args 字段是一个 ngx_array_t 类型的数组，该数组的首个元素是这个
+     *      配置指令本身，第二个元素是指令的第一个参数，第三个元素是第二个
+     *      参数，以此类推.
+     * @cmd: 这个配置指令对应的 ngx_command_t 结构
+     * @conf: 就是定义的存储这个配置值的结构体，即该配置指令所在模块的配置信息
+     *        结构体.
+     */
     char               *(*set)(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+
+    /*
+     * 该字段主要被 HTTP/RTMP 系列模块所用，该字段指定当前配置项存储的内存
+     * 位置。实际上是使用哪个内存池的问题。因为 http/rtmp 模块对所有 http 模块
+     * 都要保存的配置信息，划分了 main，server，location 三个地方进行存储，
+     * 每个地方都有一个内存池用来分配存储这些信息的内存。这里可能的值有
+     * NGX_HTTP_MAIN_CONF_OFFSET(直接为 0 表示该项)、NGX_HTTP_SRV_CONF_OFFSET 以及
+     * NGX_HTTP_LOC_CONF_OFFSET
+     */
     ngx_uint_t            conf;
+
+    /*
+     * 指定该配置项值的精确存放位置，一般指定为某个结构体变量的字段偏移。因为对于
+     * 配置信息的存储，一般我们都是定义一个结构体来存储。比如定义了结构体 A，该项
+     * 配置的值需要存储到该结构体的 b 字段，那么这里可以填写 offsetof(A, b)。
+     * 对于有些配置项，若它的值不需要保存或者是需要保存到更为复杂的结构中时，直接
+     * 设为 0.
+     */
     ngx_uint_t            offset;
+
+    /*
+     * 该字段存储一个指针，可以指向任何一个在读取配置项过程需要的数据，以便于进行
+     * 配置读取的处理。大多数时候，都不需要该值，直接设为 0 即可.
+     */
     void                 *post;
 };
 
@@ -96,9 +138,18 @@ struct ngx_open_file_s {
 
 
 typedef struct {
+    /*
+     * 保存配置文件的信息
+     */
     ngx_file_t            file;
+    /*
+     * 储存从配置文件中读取到的数据
+     */
     ngx_buf_t            *buffer;
     ngx_buf_t            *dump;
+    /*
+     * 记录当前正在解析的行号
+     */
     ngx_uint_t            line;
 } ngx_conf_file_t;
 
@@ -115,15 +166,27 @@ typedef char *(*ngx_conf_handler_pt)(ngx_conf_t *cf,
 
 struct ngx_conf_s {
     char                 *name;
+    /* 
+     * 用于存放该配置项的元素字符串，它是一个数组，假设当前配置项为"daemon off;"
+     * 则 args[0] 指向 "daemon"，args[1] 指向 "off".
+     */
     ngx_array_t          *args;
 
+    /* 
+     * 指向当前的核心结构体 ngx_cycle_t
+     */
     ngx_cycle_t          *cycle;
+    /*
+     * 指向核心结构体所用的内存池 */
     ngx_pool_t           *pool;
     ngx_pool_t           *temp_pool;
+    /* 保存的是配置文件的信息 */
     ngx_conf_file_t      *conf_file;
     ngx_log_t            *log;
 
     void                 *ctx;
+    /* 
+     * 当前解析配置项所在的模块的类型  */
     ngx_uint_t            module_type;
     ngx_uint_t            cmd_type;         // 区分该配置指令是属于哪个块下的 ex: NGX_HTTP_MAIN_CONF or NGX_HTTP_SRV_CONF
 

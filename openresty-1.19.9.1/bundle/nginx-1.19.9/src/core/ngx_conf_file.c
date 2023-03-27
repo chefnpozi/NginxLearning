@@ -154,6 +154,35 @@ ngx_conf_add_dump(ngx_conf_t *cf, ngx_str_t *filename)
 }
 
 
+/* 该函数是开始解析配置文件的入口函数。
+ * 该函数是一个间接递归函数，就是虽然在该函数体内看不到直接对其本身的调用，
+ * 但是它执行的一些其他函数(如ngx_conf_handler())内会有调用到ngx_conf_parse()
+ * 函数，从而形成递归。这一般在处理复杂配置项和一些特殊配置指令时发生.
+ *
+ * 该函数总体分为三个步骤:
+ * 1. 判断当前解析状态
+ * 2. 读取配置标记 token
+ * 3. 当读取了合适数量的标记 token 后对其进行实际的处理，也就是将配置值转换为
+ *    Nginx 内对应控制变量的值.
+ *
+ * 当进入到 ngx_conf_parse() 函数时，首先做的第一步就是判断当前解析过程处在一个
+ * 什么样的状态，这有三种可能:
+ * 1. 正要开始解析一个配置文件: 此时的参数filename指向一个配置文件路径字符串，
+ *    需要函数ngx_conf_parse() 打开该文件并获取相关的文件信息(比如文件描述符等)
+ *    以便下面代码读取文件内容并进行解析。此外还有一种属于此种情况，就是当遇到
+ *    include 指令时也将以这种状态调用 ngx_conf_parse() 函数，因为 include 指令
+ *    表示一个新的配置文件要开始解析。状态标记为type=parse_file;
+ *
+ * 2. 正要开始解析一个复杂配置项值：此时配置文件已经打开并且也已经对文件进行了
+ *    部分解析，当遇到复杂配置项比如events、http 等时，这些复杂配置项的处理函数
+ *    又会递归调用 ngx_conf_parse() 函数，此时解析的内容还是来自当前的配置文件，
+ *    因此无需再次打开它，状态标记为type=parse_block;
+ *
+ * 3. 正要开始解析命令行参数配置项值：在对用户通过命令行 -g 参数输入的配置信息
+ *    进行解析时处于这种状态，如nginx -g 'daemon on;'，Nginx在调用ngx_conf_parse()
+ *    函数对命令行参数配置信息'daemon on;'进行解析时就是这种状态，状态标记为
+ *    type=parse_param.
+ */
 char *
 ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
 {
@@ -173,10 +202,12 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
     prev = NULL;
 #endif
 
+    /* 首先判断当前解析状态 */
     if (filename) {
 
         /* open configuration file */
 
+        /* 以只读方式打开配置文件 */
         fd = ngx_open_file(filename->data, NGX_FILE_RDONLY, NGX_FILE_OPEN, 0);
 
         if (fd == NGX_INVALID_FILE) {
@@ -190,6 +221,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
 
         cf->conf_file = &conf_file;
 
+        /* 该宏即为 fstat，获取配置文件的信息，保存到 file.info 中 */
         if (ngx_fd_info(fd, &cf->conf_file->file.info) == NGX_FILE_ERROR) {
             ngx_log_error(NGX_LOG_EMERG, cf->log, ngx_errno,
                           ngx_fd_info_n " \"%s\" failed", filename->data);
@@ -197,16 +229,25 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
 
         cf->conf_file->buffer = &buf;
 
+        /* 为这块缓存分配内存，用于存储从配置文件中读取的数据 */
         buf.start = ngx_alloc(NGX_CONF_BUFFER, cf->log);
         if (buf.start == NULL) {
             goto failed;
         }
 
+        /* pos通常是用来告诉使用者本次应该从pos这个位置开始处理内存中的数据，
+         * 这样设置是因为同一个ngx_buf_t可能被多次反复处理。当然，pos的含义
+         * 是由使用它的模块定义的 */
         buf.pos = buf.start;
+        /* last通常表示有效的内容到此为止，注意，pos与last之间的内存是希望nginx
+         * 处理的内容，由于该缓存中还没有数据，因此置为 start  */
         buf.last = buf.start;
+        /* 与start成员对应，指向缓冲区内存的末尾 */
         buf.end = buf.last + NGX_CONF_BUFFER;
+        /* 标志位，为 1 表示数据在内存中且这段数据可以被修改 */
         buf.temporary = 1;
 
+        /* 将该配置文件的信息赋值给 cf->conf_file */
         cf->conf_file->file.fd = fd;
         cf->conf_file->file.name.len = filename->len;
         cf->conf_file->file.name.data = filename->data;
@@ -214,6 +255,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
         cf->conf_file->file.log = cf->log;
         cf->conf_file->line = 1;
 
+        /* 当首次开始解析配置文件时，类型为 parse_file */
         type = parse_file;
 
         if (ngx_dump_config
@@ -232,13 +274,17 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
 
     } else if (cf->conf_file->file.fd != NGX_INVALID_FILE) {
 
+        /* 由开头的分析知，开始解析复杂配置项时，为此类型 */
         type = parse_block;
 
     } else {
+        /* 若为解析命令行参数配置项时，为此类型 */
         type = parse_param;
     }
 
 
+    /* 判断好当前解析状态后就开始读取配置文件内容，配置文件是由一个个token组成的，
+     * 因此接下来就是循环从配置文件里读取token. */
     for ( ;; ) {
         rc = ngx_conf_read_token(cf);
 
@@ -256,6 +302,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
             goto done;
         }
 
+        /* 若返回值表示当前块解析结束 */
         if (rc == NGX_CONF_BLOCK_DONE) {
 
             if (type != parse_block) {
@@ -266,6 +313,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
             goto done;
         }
 
+        /* 若返回值表示解析配置文件结束 */
         if (rc == NGX_CONF_FILE_DONE) {
 
             if (type == parse_block) {
@@ -277,6 +325,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
             goto done;
         }
 
+        /* 若返回值表示开始解析复杂配置项 */
         if (rc == NGX_CONF_BLOCK_START) {
 
             if (type == parse_param) {
@@ -316,6 +365,9 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename)
         }
 
 
+        /* 遍历所有的模块，找到与该当前读取到的指令长度和名称都相同的
+         * ngx_command_t，然后调用该 ngx_comand_t 的 set 回调函数，
+         * 将读取到的指令参数设置到该模块的配置信息结构体中的相应字段 */
         rc = ngx_conf_handler(cf, rc);
 
         if (rc == NGX_ERROR) {
@@ -352,6 +404,12 @@ done:
 }
 
 
+/*
+ * Nginx的每一个配置指令都对应一个ngx_command_s数据类型变量，记录着该配置指令的解析回调函数、
+ * 转换值存储位置等，而每一个模块又都把自身所相关的所有指令以数组的形式组织起来，所以函数
+ * ngx_conf_handler()首先做的就是查找当前指令所对应的ngx_command_s变量，这通过循环遍历各个
+ * 模块的指令数组即可。
+ */
 static ngx_int_t
 ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
 {
@@ -361,12 +419,15 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
     ngx_str_t      *name;
     ngx_command_t  *cmd;
 
+    /* 此时 cf->elts 数组保存的是从配置文件中读取到的一行指令 */
     name = cf->args->elts;
 
     found = 0;
 
+    /* 遍历所有模块 */
     for (i = 0; cf->cycle->modules[i]; i++) {
 
+        /* 获取该模块保存的所有配置指令的数组 */
         cmd = cf->cycle->modules[i]->commands;
         if (cmd == NULL) {
             continue;
@@ -374,14 +435,17 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
 
         for ( /* void */ ; cmd->name.len; cmd++) {
 
+            /* 若指令的名称长度不等，下一个 */
             if (name->len != cmd->name.len) {
                 continue;
             }
 
+            /* 若内容不相等，则继续下一个 */
             if (ngx_strcmp(name->data, cmd->name.data) != 0) {
                 continue;
             }
 
+            /* 若上面检测到指令的长度和名称都相等，则表示找到 */
             found = 1;
 
             if (cf->cycle->modules[i]->type != NGX_CONF_MODULE
@@ -412,20 +476,24 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
 
             /* is the directive's argument count right ? */
 
+            /* NGX_CONF_ANY：该配置指令可以出现在任意配置级别上 */
             if (!(cmd->type & NGX_CONF_ANY)) {
 
+                /* 配置指令可以接受的是"on"或者"off"，最终会被转成bool值 */
                 if (cmd->type & NGX_CONF_FLAG) {
 
                     if (cf->args->nelts != 2) {
                         goto invalid;
                     }
 
+                /* 配置指令接受至少一个参数 */
                 } else if (cmd->type & NGX_CONF_1MORE) {
 
                     if (cf->args->nelts < 2) {
                         goto invalid;
                     }
 
+                /* 配置指令接受至少两个参数 */
                 } else if (cmd->type & NGX_CONF_2MORE) {
 
                     if (cf->args->nelts < 3) {
@@ -446,20 +514,36 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
 
             conf = NULL;
 
+            /* 可以出现在配置文件的最外层。例如已经提供的配置指令daemon，
+             * master_process等 */
             if (cmd->type & NGX_DIRECT_CONF) {
+                /* 获取该模块对应的配置文件结构体，该配置结构体用于保存
+                 * 该模块感兴趣的配置项值 */
                 conf = ((void **) cf->ctx)[cf->cycle->modules[i]->index];
 
+            /* 配置文件最外层，如http、mail、events、error_log 等 */
             } else if (cmd->type & NGX_MAIN_CONF) {
+                /* 获取该模块的总配置信息结构体，对于http模块，当解析到http时，
+                 * 该http核心模块ngx_http_module由于没有实现create_conf方法，
+                 * 因此，当第一次解析到http{}时，这里获取到的conf的具体内容
+                 * 为NULL，需要在解析http{}时才分配 */
                 conf = &(((void **) cf->ctx)[cf->cycle->modules[i]->index]);
 
+            /* 对应解析http{}里的内容时 */
             } else if (cf->ctx) {
+                /* 获取该http配置项应存储在http的main、server、locaiton这三块内存池
+                 * 中哪个内存池上 */
                 confp = *(void **) ((char *) cf->ctx + cmd->conf);
 
                 if (confp) {
+                    /* 又根据该模块的ctx_index序号获取在该内存池(即指针数组)中
+                     * 指向该类模块对应配置信息结构体的指针 */
                     conf = confp[cf->cycle->modules[i]->ctx_index];
                 }
             }
 
+            /* 调用该配置指令对应的回调函数，将读取到到值设置到该配置结构体
+             * conf 的相应字段 */
             rv = cmd->set(cf, cmd, conf);
 
             if (rv == NGX_CONF_OK) {
@@ -514,24 +598,35 @@ ngx_conf_read_token(ngx_conf_t *cf)
     found = 0;
     need_space = 0;
     last_space = 1;
+    /* 注释标志位 */
     sharp_comment = 0;
     variable = 0;
+    /* 单/双引号标志位 */
     quoted = 0;
+    /* 单引号标志位 */
     s_quoted = 0;
+    /* 双引号标志位 */
     d_quoted = 0;
 
     cf->args->nelts = 0;
     b = cf->conf_file->buffer;
     dump = cf->conf_file->dump;
+    /* 指向当前开始解析的位置 */
     start = b->pos;
+    /* 当前解析的行 */
     start_line = cf->conf_file->line;
 
+    /* 配置文件的大小 */
     file_size = ngx_file_size(&cf->conf_file->file.info);
 
     for ( ;; ) {
 
+        /* 当 pos 大于等于 last 时，表示当前缓存中没有待解析的有效数据
+         * 需要从配置文件中读取新的数据 */
         if (b->pos >= b->last) {
 
+            /* 若该配置文件的偏移值已经大于等于文件大小，说明配置文件的数据
+             * 已经读取完毕 */
             if (cf->conf_file->file.offset >= file_size) {
 
                 if (cf->args->nelts > 0 || !last_space) {
@@ -549,9 +644,11 @@ ngx_conf_read_token(ngx_conf_t *cf)
                     return NGX_ERROR;
                 }
 
+                /* 配置文件数据读取完毕，且没有出现错误，则返回该标志 */
                 return NGX_CONF_FILE_DONE;
             }
 
+            /* 若文件还没有读取完毕，则计算当前buf缓存中已经解析过的数据大小 */
             len = b->pos - start;
 
             if (len == NGX_CONF_BUFFER) {
@@ -580,12 +677,16 @@ ngx_conf_read_token(ngx_conf_t *cf)
                 ngx_memmove(b->start, start, len);
             }
 
+            /* 计算当前配置文件剩余待解析的数据大小 */
             size = (ssize_t) (file_size - cf->conf_file->file.offset);
 
             if (size > b->end - (b->start + len)) {
                 size = b->end - (b->start + len);
             }
 
+            /* 从配置文件中读取 size 字节到 b->start + len 指向的缓存处,
+             * file.offset 保存此次从配置文件中读取的字节数，返回值 n 为
+             * 读取到的字节数 */
             n = ngx_read_file(&cf->conf_file->file, b->start + len, size,
                               cf->conf_file->file.offset);
 
@@ -593,6 +694,8 @@ ngx_conf_read_token(ngx_conf_t *cf)
                 return NGX_ERROR;
             }
 
+            /* 若实际读取到的字节数 n 与指定要求读取的字节数不相等，则
+             * 表明发生错误了 */
             if (n != size) {
                 ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                                    ngx_read_file_n " returned "
@@ -601,7 +704,9 @@ ngx_conf_read_token(ngx_conf_t *cf)
                 return NGX_ERROR;
             }
 
+            /* pos 指向当前待解析的有效内容的起始处 */
             b->pos = b->start + len;
+            /* last 指向当前待解析的有效内容的末尾 */
             b->last = b->pos + n;
             start = b->start;
 
@@ -610,16 +715,22 @@ ngx_conf_read_token(ngx_conf_t *cf)
             }
         }
 
+        /* 取出一个字符 */
         ch = *b->pos++;
 
+        /* 若当前字符为换行符 '\n' */
         if (ch == LF) {
+            /* 行计数器加 1 */
             cf->conf_file->line++;
 
+            /* 若该标志位为 1，表示当前行为注释 */
             if (sharp_comment) {
+                /* 重置该标志位为 0 */
                 sharp_comment = 0;
             }
         }
 
+        /* 若当前行为注释，则回到循环开始，重新开始读取数据 */
         if (sharp_comment) {
             continue;
         }
@@ -657,9 +768,13 @@ ngx_conf_read_token(ngx_conf_t *cf)
 
         if (last_space) {
 
+            /* 若当前读取到的是注释，下面这两个变量可忽略 */
+            /* 记录当前读取指令的起始位置 */
             start = b->pos - 1;
+            /* 记录当前读取指令的起始行 */
             start_line = cf->conf_file->line;
 
+            /* 若当前字符为以下这些字符，则回到循环开始继续取下一个字符 */
             if (ch == ' ' || ch == '\t' || ch == CR || ch == LF) {
                 continue;
             }
@@ -681,6 +796,7 @@ ngx_conf_read_token(ngx_conf_t *cf)
                 return NGX_OK;
 
             case '}':
+                /* 为该字符，表明当前的复杂配置项的内容已经读取完毕 */
                 if (cf->args->nelts != 0) {
                     ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                                        "unexpected \"}\"");
@@ -690,6 +806,8 @@ ngx_conf_read_token(ngx_conf_t *cf)
                 return NGX_CONF_BLOCK_DONE;
 
             case '#':
+                /* 若当前字符为 '#'，表示遇到注释了，因此回到循环开始
+                 * 继续去下一个字符 */
                 sharp_comment = 1;
                 continue;
 
@@ -757,6 +875,7 @@ ngx_conf_read_token(ngx_conf_t *cf)
                 found = 1;
             }
 
+            /* found 为 1 表明读取到完整的一个字符串，该指令的名称/参数 */
             if (found) {
                 word = ngx_array_push(cf->args);
                 if (word == NULL) {
@@ -802,10 +921,12 @@ ngx_conf_read_token(ngx_conf_t *cf)
                 *dst = '\0';
                 word->len = len;
 
+                /* 若当前字符为 ';'，表明一个指令已经读取完毕 */
                 if (ch == ';') {
                     return NGX_OK;
                 }
 
+                /* 若当前字符为 '{'，则表明将要开始解析复杂配置项 */
                 if (ch == '{') {
                     return NGX_CONF_BLOCK_START;
                 }

@@ -47,6 +47,14 @@ ngx_event_del_timer(ngx_event_t *ev)
 }
 
 
+/*
+ * 参数含义：
+ * - ev：是需要操作的事件
+ * - timer：单位是毫秒，它告诉定时器事件ev希望timer毫秒后超时，同时需要回调ev的handler方法
+ *
+ * 执行意义：
+ * 添加一个定时器事件，超时时间为 timer 毫秒
+ */
 static ngx_inline void
 ngx_event_add_timer(ngx_event_t *ev, ngx_msec_t timer)
 {
@@ -55,6 +63,7 @@ ngx_event_add_timer(ngx_event_t *ev, ngx_msec_t timer)
 
     key = ngx_current_msec + timer;
 
+    /* 若该事件已经添加到红黑树中 */
     if (ev->timer_set) {
 
         /*
@@ -72,17 +81,25 @@ ngx_event_add_timer(ngx_event_t *ev, ngx_msec_t timer)
             return;
         }
 
+        /* 将该事件从红黑树中删除 */
         ngx_del_timer(ev);
     }
 
+    /* 记录该事件的超时时刻，在后续进行超时检测扫描时需要该字段来进行时刻的先后比较 */
     ev->timer.key = key;
 
     ngx_log_debug3(NGX_LOG_DEBUG_EVENT, ev->log, 0,
                    "event timer add: %d: %M:%M",
                     ngx_event_ident(ev->data), timer, ev->timer.key);
 
+    /* 将事件添加到红黑树中
+     * 这种添加是间接性的，每个事件对象封装结构体中都有一个timer字段，
+     * 其为ngx_rbtree_node_t 类型变量，加入到红黑树中就是该字段，
+     * 而非事件对象结构体本身。后面要获取该事件结构体时可以通过利用
+     * offsetof宏来根据该timer字段方便找到其所在的对应事件对象结构体. */
     ngx_rbtree_insert(&ngx_event_timer_rbtree, &ev->timer);
 
+    /* 置位该变量，表示添加到红黑树中 */
     ev->timer_set = 1;
 }
 

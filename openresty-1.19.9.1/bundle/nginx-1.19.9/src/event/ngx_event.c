@@ -219,20 +219,49 @@ ngx_module_t  ngx_event_core_module = {
 };
 
 
+/**
+ * 在开启负载均衡的情况下，在ngx_event_process_init()函数中跳过了将监听套接口加入到
+ * 事件监控机制，真正将监听套接口加入到事件监控机制是在ngx_process_events_and_timers()
+ * 里。工作进程的主要执行体是一个无限的for循环，而在该循环内最重要的函数调用就是
+ * ngx_process_events_and_timers()，所以在该函数内动态添加或删除监听套接口是一种很灵活
+ * 的方式。如果当前工作进程负载比较小，就将监听套接口加入到自身的事件监控机制里，从而
+ * 带来新的客户端请求；而如果当前工作进程负载比较大，就将监听套接口从自身的事件监控机制里
+ * 删除，避免引入新的客户端请求而带来更大的负载。
+ */
+ /*
+  * 参数含义：
+  * - cycle是当前进程的ngx_cycle_t结构体指针
+  * 
+  * 执行意义:
+  * 使用事件模块处理截止到现在已经收集到的事件.
+  */
 void
 ngx_process_events_and_timers(ngx_cycle_t *cycle)
 {
     ngx_uint_t  flags;
     ngx_msec_t  timer, delta;
 
+    /*
+     * Nginx具体使用哪种超时检测方案主要取决于一个nginx.conf的配置指令timer_resolution，即对应
+     * 的全局变量 ngx_timer_resolution。 */
+
     ngx_queue_t     *q;
     ngx_event_t     *ev;
 
+    /* 如果配置文件中使用了 timer_resolution 配置项，也就是 ngx_timer_resolution 值大于 0，
+     * 则说明用户希望服务器时间精确度为 ngx_timer_resolution 毫秒。这时，将 ngx_process_events 的 
+     *  timer 参数设置为 -1，告诉 ngx_process_events 方法在检测事件时不要等待，直接收集所有已经
+     * 就绪的事件然后返回；同时将 flags 参数置为 0，即告诉 ngx_process_events 没有任何附加动作。
+     */
     if (ngx_timer_resolution) {
         timer = NGX_TIMER_INFINITE;
         flags = 0;
 
     } else {
+        /* 如果没有使用 timer_resolution，那么将调用 ngx_event_find_timer() 方法获取最近一个将要
+         * 触发的事件距离现在有多少毫秒，然后把这个值赋予 timer 参数，告诉 ngx_process_events 
+         * 方法在检测事件时如果没有任何事件，最多等待 timer 毫秒就返回；将 flags 参数设置为 
+         * NGX_UPDATE_TIME，告诉 ngx_process_events 方法更新缓存的时间 */
         timer = ngx_event_find_timer();
         flags = NGX_UPDATE_TIME;
 
@@ -254,22 +283,56 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
         timer = 0;
     }
 
+    /* 开启了负载均衡的情况下，若当前使用的连接到达总连接数的7/8时，就不会再处理
+     * 新连接了，同时，在每次调用process_events时都会将ngx_accept_disabled减1，
+     * 直到ngx_accept_disabled降到总连接数的7/8以下时，才会调用ngx_trylock_accept_mutex
+     * 试图去处理新连接事件 */
     if (ngx_use_accept_mutex) {
+         /* 
+         * 检测变量 ngx_accept_disabled 值是否大于0来判断当前进程是否
+         * 已经过载，为什么可以这样判断需要理解变量ngx_accept_disabled
+         * 值的含义，这在accept()接受新连接请求的处理函数ngx_event_accept()
+         * 内可以看到。
+         * 当ngx_accept_disabled大于0，表示处于过载状态，因为仅仅是自减一，
+         * 当经过一段时间又降到0以下，便可争用锁获取新的请求连接。
+         */
         if (ngx_accept_disabled > 0) {
             ngx_accept_disabled--;
 
         } else {
+            /* 
+             * 若进程没有处于过载状态，那么就会尝试争用该锁获取新的请求连接。
+             * 实际上是争用监听套接口的监控权，争锁成功就会把所有监听套接口
+             * (注意，是所有的监听套接口，它们总是作为一个整体被加入或删除)
+             * 加入到自身的事件监控机制里（如果原本不在）；争锁失败就会把监听
+             * 套接口从自身的事件监控机制里删除（如果原本就在）。从下面的函数
+             * 可以看到这点。 
+             */
             if (ngx_trylock_accept_mutex(cycle) == NGX_ERROR) {
+                /* 发生错误则直接返回 */
                 return;
             }
 
+            /* 若获取到锁，则给flags添加NGX_POST_EVENTS标记，表示所有发生的事件都将延后
+             * 处理。这是任何架构设计都必须遵守的一个约定，即持锁者必须尽量缩短自身持锁的时
+             * 间，Nginx亦如此，所以照此把大部分事件延迟到释放锁之后再去处理，把锁尽快释放，
+             * 缩短自身持锁的时间能让其他进程尽可能的有机会获取到锁。*/
             if (ngx_accept_mutex_held) {
                 flags |= NGX_POST_EVENTS;
 
             } else {
+                /* 如果没有获取到 accept_mutex 锁，则意味着既不能让当前 worker 进程频繁地试图抢锁，
+                 * 也不能让它经过太长时间再去抢锁。*/
                 if (timer == NGX_TIMER_INFINITE
                     || timer > ngx_accept_mutex_delay)
                 {
+                    /* 这意味着，即使开启了 timer_resolution 时间精度，也需要让 
+                     * ngx_process_events  方法在没有新事件的时候至少等待 ngx_accept_mutex_delay 
+                     * 毫秒再去试图抢锁。而没有开启时间精度时，如果最近一个定时器事件的超时时间
+                     * 距离现在超过了 ngx_accept_mutex_delay 毫秒的话，也要把 timer 设置为 
+                     * ngx_accept_mutex_delay 毫秒，这是因为当前进程虽然没有抢到 accept_mutex  
+                     * 锁，但也不能让 ngx_process_events 方法在没有新事件的时候等待的时间超过
+                     *  ngx_accept_mutex_delay 毫秒，这会影响整个负载均衡机制 */
                     timer = ngx_accept_mutex_delay;
                 }
             }
@@ -281,27 +344,55 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
         timer = 0;
     }
 
+    /* 调用 ngx_process_events 方法，并计算 ngx_process_events 执行时消耗的时间 */
     delta = ngx_current_msec;
 
     /* 返回到这里，然后接着往下执行 */
+    /* 开始等待事件发生并进行相应处理(立即处理或先缓存所有接收到的事件) */
     (void) ngx_process_events(cycle, timer, flags);
 
+    /* delta 的值即为 ngx_process_events 执行时消耗的毫秒数 */
     delta = ngx_current_msec - delta;
 
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                    "timer delta: %M", delta);
 
+    /*
+     * 接下来先处理新建连接缓存事件ngx_posted_accept_events，此时还不能释放锁，因为我们还在处理
+     * 监听套接口上的事件，还要读取上面的请求数据，所以必须独占，一旦缓存的新建连接事件全部被处
+     * 理完就必须马上释放持有的锁了，因为连接套接口只可能被某一个进程至始至终的占有，不会出现多
+     * 进程之间的相互冲突，所以对于连接套接口上事件ngx_posted_events的处理可以在释放锁之后进行，
+     * 虽然对于它们的具体处理与响应是最消耗时间的，不过在此之前已经释放了持有的锁，所以即使慢一点
+     * 也不会影响到其他进程。
+     */
     ngx_event_process_posted(cycle, &ngx_posted_accept_events);
 
+    /* 将锁释放 */
     if (ngx_accept_mutex_held) {
         ngx_shmtx_unlock(&ngx_accept_mutex);
     }
 
+    /* 处理所有的超时事件 */
     ngx_event_expire_timers();
 
     /* 将会执行到这里，由上面的分析可知，已经将 send_evt 事件放入到了 
      * ngx_posted_events 延迟队列中，因此会取出该事件，并执行 */
+    /* 释放锁后再处理耗时长的连接套接口上的事件 */
     ngx_event_process_posted(cycle, &ngx_posted_events);
+    /*
+     * 补充两点。
+     * 一：如果在处理新建连接事件的过程中，在监听套接口上又来了新的请求会怎么样？这没有关系，当前
+     *     进程只处理已缓存的事件，新的请求将被阻塞在监听套接口上，而前面曾提到监听套接口是以 ET
+     *     方式加入到事件监控机制里的，所以等到下一轮被哪个进程争取到锁并加到事件监控机制里时才会
+     *     触发而被抓取出来。
+     * 二：上面的代码中进行ngx_process_events()处理并处理完新建连接事件后，只是释放锁而并没有将监听
+     *     套接口从事件监控机制里删除，所以有可能在接下来处理ngx_posted_events缓存事件的过程中，互斥
+     *     锁被另外一个进程争抢到并把所有监听套接口加入到它的事件监控机制里。因此严格说来，在同一
+     *     时刻，监听套接口只可能被一个进程监控（也就是epoll_wait()这种），因此进程在处理完
+     *     ngx_posted_event缓存事件后去争用锁，发现锁被其他进程占有而争用失败，会把所有监听套接口从
+     *     自身的事件监控机制里删除，然后才进行事件监控。在同一时刻，监听套接口只可能被一个进程
+     *     监控，这就意味着Nginx根本不会受到惊群的影响，而不论Linux内核是否已经解决惊群问题。
+     */
 
     while (!ngx_queue_empty(&ngx_posted_delayed_events)) {
         q = ngx_queue_head(&ngx_posted_delayed_events);
@@ -683,6 +774,9 @@ ngx_event_module_init(ngx_cycle_t *cycle)
 
 #if !(NGX_WIN32)
 
+/*ngx_timer_signal_handler 方法则会将
+ngx_event_timer_alarm 标志位设为 1，这样，一旦调用 ngx_epoll_process_events 方法时，如果间隔的时间超过
+timer_resolution 毫秒，那么就会调用 ngx_time_update 方法更新缓存时间*/
 static void
 ngx_timer_signal_handler(int signo)
 {

@@ -14,8 +14,17 @@
 
 
 struct ngx_file_s {
+    /*
+     * 打开的文件描述符
+     */
     ngx_fd_t                   fd;
+    /*
+     * 保存该文件的绝对路径
+     */
     ngx_str_t                  name;
+    /*
+     * ngx_file_info_t 即 struct stat 结构体类型
+     */
     ngx_file_info_t            info;
 
     off_t                      offset;

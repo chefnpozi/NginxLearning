@@ -13,9 +13,13 @@
 #include <ngx_core.h>
 
 
+/*Nginx 中的每个进程都会单独地管理当前时间。ngx_time_t 结构体是缓存时间变量的类型*/
 typedef struct {
+    /* 格林威治时间1970年1月1日凌晨0点0分0秒到当前时间的秒数 */
     time_t      sec;
+    /* sec成员只能精确到秒，msec则是当前时间相对于sec的毫秒偏移量 */
     ngx_uint_t  msec;
+    /* 时区 */
     ngx_int_t   gmtoff;
 } ngx_time_t;
 

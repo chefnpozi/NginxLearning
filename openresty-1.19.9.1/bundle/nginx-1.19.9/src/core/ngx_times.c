@@ -26,13 +26,24 @@ static ngx_msec_t ngx_monotonic_time(time_t sec, ngx_uint_t msec);
 static ngx_uint_t        slot;
 static ngx_atomic_t      ngx_time_lock;
 
+/*Nginx 定义了以下全局变量用于缓存时间*/
+
+/* 格林威治时间1970年1月1日凌晨0点0分0秒到当前时间的毫秒数 */
 volatile ngx_msec_t      ngx_current_msec;
+/* ngx_time_t结构体形式的当前时间 */
 volatile ngx_time_t     *ngx_cached_time;
+/* 用于记录error_log的当前时间字符串，它的格式类似于："1970/09/28 12:00:00" */
 volatile ngx_str_t       ngx_cached_err_log_time;
+/* 用于记录HTTP相关的当前时间字符串，它的格式类似于："Mon, 28 Sep 1970 06:00:00 GMT" */
 volatile ngx_str_t       ngx_cached_http_time;
+/* 用于记录HTTP日志的当前时间字符串，它的格式类似于："28/Sep1970:12:00:00 +0600" */
 volatile ngx_str_t       ngx_cached_http_log_time;
+/* 以ISO 8601标准格式记录下的字符串形式的当前时间 */
 volatile ngx_str_t       ngx_cached_http_log_iso8601;
 volatile ngx_str_t       ngx_cached_syslog_time;
+/*对于 worker 进程而言，除了 Nginx 启动时更新一次时间外，任何更新时间的操作都只能由 ngx_epoll_process_events
+方法执行。在该方法中，当检测到 flags 参数中有 NGX_UPDATE_TIME 标志，或者 ngx_event_timer_alarm 标志位为 1
+时，就会调用 ngx_time_update 方法更新缓存时间*/
 
 #if !(NGX_WIN32)
 
@@ -77,6 +88,11 @@ ngx_time_init(void)
 }
 
 
+/*
+ * 执行意义：
+ * 使用gettimeofday调用以系统时间更新缓存的时间，上述的ngx_current_msec、ngx_cached_time、
+ * ngx_cached_err_log_time、ngx_cached_http_time、ngx_cached_http_log_time、
+ * ngx_cached_http_log_iso8601、ngx_cached_syslog_time这几个全局变量都会得到刷新 */
 void
 ngx_time_update(void)
 {
